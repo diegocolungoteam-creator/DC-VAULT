@@ -30,6 +30,8 @@ const FIELD_SYNONYMS: Record<string, string[]> = {
   concept: ["concepto", "descripcion"],
   category: ["categoria", "tipo"],
   description: ["descripcion", "detalle", "concepto"],
+  scheduled_date: ["fechaprogramada", "fecha", "proximarevision"],
+  done_date: ["fecharealizada", "fechahecha", "realizada"],
 };
 
 function normalize(text: string): string {

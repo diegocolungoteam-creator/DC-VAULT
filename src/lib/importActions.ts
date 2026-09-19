@@ -193,3 +193,70 @@ export async function importExpensesAction(
   revalidatePath("/contabilidad");
   return result;
 }
+
+export async function importRevisionsAction(
+  _prev: ImportResult | null,
+  formData: FormData
+): Promise<ImportResult> {
+  const csvText = String(formData.get("csv_text") ?? "");
+  const mapping = JSON.parse(String(formData.get("mapping") ?? "{}")) as Record<string, string>;
+  const db = getDb();
+
+  const result: ImportResult = { inserted: 0, skipped: 0, errors: [] };
+  let rows: Record<string, string>[];
+  try {
+    rows = parseCsv(csvText);
+  } catch (e) {
+    return { inserted: 0, skipped: 0, errors: [`No se pudo leer el CSV: ${(e as Error).message}`] };
+  }
+
+  const findByName = db.prepare("SELECT id FROM clients WHERE lower(name) = lower(?) LIMIT 1");
+  const findByEmail = db.prepare("SELECT id FROM clients WHERE lower(email) = lower(?) LIMIT 1");
+  const insert = db.prepare(
+    `INSERT INTO revisions (client_id, scheduled_date, done_date, status, notes) VALUES (?, ?, ?, ?, ?)`
+  );
+
+  rows.forEach((row, i) => {
+    const clientMatch = getMapped(row, mapping, "client_match")?.trim();
+    if (!clientMatch) {
+      result.skipped++;
+      result.errors.push(`Fila ${i + 2}: falta el nombre/email del cliente.`);
+      return;
+    }
+    const client =
+      (findByEmail.get(clientMatch) as { id: number } | undefined) ??
+      (findByName.get(clientMatch) as { id: number } | undefined);
+    if (!client) {
+      result.skipped++;
+      result.errors.push(`Fila ${i + 2}: no se encontró el cliente "${clientMatch}".`);
+      return;
+    }
+    const scheduledDate = parseFlexibleDate(getMapped(row, mapping, "scheduled_date"));
+    const doneDate = parseFlexibleDate(getMapped(row, mapping, "done_date"));
+    if (!scheduledDate && !doneDate) {
+      result.skipped++;
+      result.errors.push(`Fila ${i + 2}: falta la fecha programada o realizada.`);
+      return;
+    }
+    const statusRaw = getMapped(row, mapping, "status")?.trim().toLowerCase();
+    const status: string =
+      statusRaw && ["pendiente", "realizada", "cancelada"].includes(statusRaw)
+        ? statusRaw
+        : doneDate
+          ? "realizada"
+          : "pendiente";
+
+    insert.run(
+      client.id,
+      (scheduledDate ?? doneDate) as string,
+      doneDate,
+      status,
+      getMapped(row, mapping, "notes")?.trim() || null
+    );
+    result.inserted++;
+  });
+
+  revalidatePath("/revisiones");
+  revalidatePath("/");
+  return result;
+}

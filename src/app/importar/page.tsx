@@ -1,4 +1,9 @@
-import { importClientsAction, importExpensesAction, importPaymentsAction } from "@/lib/importActions";
+import {
+  importClientsAction,
+  importExpensesAction,
+  importPaymentsAction,
+  importRevisionsAction,
+} from "@/lib/importActions";
 import { ImportWizard, type ImportField } from "@/components/ImportWizard";
 
 const CLIENT_FIELDS: ImportField[] = [
@@ -29,6 +34,14 @@ const EXPENSE_FIELDS: ImportField[] = [
   { key: "amount", label: "Importe", required: true },
   { key: "category", label: "Categoría" },
   { key: "description", label: "Descripción" },
+];
+
+const REVISION_FIELDS: ImportField[] = [
+  { key: "client_match", label: "Cliente (nombre o email exacto)", required: true },
+  { key: "scheduled_date", label: "Fecha programada" },
+  { key: "done_date", label: "Fecha realizada" },
+  { key: "status", label: "Estado (pendiente/realizada/cancelada)" },
+  { key: "notes", label: "Notas" },
 ];
 
 export default function ImportarPage() {
@@ -66,6 +79,15 @@ export default function ImportarPage() {
           fields={EXPENSE_FIELDS}
           action={importExpensesAction}
           sampleHeader="fecha, importe, categoria, descripcion"
+        />
+      </section>
+
+      <section className="card p-6">
+        <h2 className="mb-4 text-lg font-medium">Revisiones</h2>
+        <ImportWizard
+          fields={REVISION_FIELDS}
+          action={importRevisionsAction}
+          sampleHeader="cliente, fecha_programada, fecha_realizada, estado, notas"
         />
       </section>
     </div>
