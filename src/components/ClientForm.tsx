@@ -1,4 +1,4 @@
-import type { Client } from "@/lib/types";
+import { LEAD_SOURCES, type Client } from "@/lib/types";
 
 export function ClientForm({
   action,
@@ -16,6 +16,18 @@ export function ClientForm({
         <Field label="Email" name="email" type="email" defaultValue={defaultValues?.email ?? ""} />
         <Field label="Teléfono" name="phone" defaultValue={defaultValues?.phone ?? ""} />
         <Field label="Dirección" name="address" defaultValue={defaultValues?.address ?? ""} />
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium">Fuente / cómo llegó</label>
+          <select name="source" defaultValue={defaultValues?.source ?? ""} className="input">
+            <option value="">Sin especificar</option>
+            {LEAD_SOURCES.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </div>
 
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium">Estado</label>

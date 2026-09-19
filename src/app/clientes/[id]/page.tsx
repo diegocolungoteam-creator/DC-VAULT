@@ -62,6 +62,7 @@ export default async function ClienteDetailPage({ params }: { params: Promise<{ 
           value={client.fee != null ? `${formatCurrencyEs(client.fee)} / ${client.billing_cycle}` : "—"}
         />
         <InfoBox label="Próxima renovación" value={formatDateEs(client.renewal_date)} />
+        <InfoBox label="Fuente" value={client.source ?? "—"} />
       </div>
 
       {client.address && <InfoBox label="Dirección" value={client.address} />}

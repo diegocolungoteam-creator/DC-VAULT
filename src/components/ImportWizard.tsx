@@ -16,6 +16,7 @@ const FIELD_SYNONYMS: Record<string, string[]> = {
   phone: ["telefono", "movil", "phone", "celular"],
   address: ["direccion", "address", "domicilio"],
   status: ["estado", "status"],
+  source: ["fuente", "origen", "canal", "source"],
   enrollment_date: ["fechainscripcion", "fechaalta", "inscripcion", "alta", "fecharegistro"],
   plan: ["plan", "tarifa", "servicio"],
   fee: ["cuota", "importecuota", "precio", "tarifa", "importe"],

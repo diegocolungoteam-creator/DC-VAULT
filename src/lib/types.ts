@@ -15,6 +15,19 @@ export interface Client {
   fee: number | null;
   billing_cycle: BillingCycle;
   renewal_date: string | null;
+  source: string | null;
+  created_at: string;
+}
+
+export interface AdSpendEntry {
+  id: number;
+  date: string;
+  source: string;
+  amount: number;
+  leads: number;
+  calls_scheduled: number;
+  closes: number;
+  notes: string | null;
   created_at: string;
 }
 
@@ -68,4 +81,13 @@ export const PAYMENT_METHODS = [
   "bizum",
   "domiciliacion",
   "otro",
+] as const;
+
+export const LEAD_SOURCES = [
+  "Meta Ads",
+  "Google Ads",
+  "TikTok Ads",
+  "Orgánico",
+  "Referidos",
+  "Otro",
 ] as const;

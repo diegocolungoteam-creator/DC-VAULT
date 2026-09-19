@@ -18,6 +18,10 @@ de tu Mac y no necesitas conexión a internet para usarla una vez instalada.
 - **Gastos**: registro de gastos por categoría.
 - **Contabilidad**: balance mensual (ingresos vs. gastos) y desglose de gastos
   por categoría, por año.
+- **Publicidad (Centro de mando)**: inversión en ads por fuente (Meta, Google,
+  TikTok, orgánico...), leads, llamadas agendadas y cierres, con coste por
+  lead/llamada/cierre y coste por cliente según de dónde viene. Los clientes
+  llevan un campo "fuente" para poder atribuirlos a un canal.
 - **Importar**: sube tus hojas de Google Sheets exportadas como CSV (clientes,
   pagos, gastos) y mapea las columnas a los campos del CRM.
 - **Resumen (dashboard)**: clientes activos, renovaciones próximas o vencidas,

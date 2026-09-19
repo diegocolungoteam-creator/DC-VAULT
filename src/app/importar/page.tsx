@@ -12,6 +12,7 @@ const CLIENT_FIELDS: ImportField[] = [
   { key: "fee", label: "Importe cuota" },
   { key: "billing_cycle", label: "Periodicidad (mensual/trimestral/semestral/anual)" },
   { key: "renewal_date", label: "Próxima renovación" },
+  { key: "source", label: "Fuente / cómo llegó" },
   { key: "notes", label: "Notas" },
 ];
 

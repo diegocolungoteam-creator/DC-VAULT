@@ -30,3 +30,13 @@ export function formatCurrencyEs(amount: number): string {
 export function monthKey(dateISO: string): string {
   return dateISO.slice(0, 7); // YYYY-MM
 }
+
+export function subtractDays(dateISO: string, days: number): string {
+  const d = new Date(dateISO + "T00:00:00");
+  d.setDate(d.getDate() - days);
+  return d.toISOString().slice(0, 10);
+}
+
+export function monthStartISO(dateISO: string): string {
+  return dateISO.slice(0, 7) + "-01";
+}

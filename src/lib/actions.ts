@@ -21,14 +21,15 @@ export interface ClientInput {
   fee?: number | null;
   billing_cycle: BillingCycle;
   renewal_date?: string | null;
+  source?: string | null;
 }
 
 export async function createClientAction(formData: FormData) {
   const db = getDb();
   const input = parseClientForm(formData);
   db.prepare(
-    `INSERT INTO clients (name, email, phone, address, notes, status, enrollment_date, plan, fee, billing_cycle, renewal_date)
-     VALUES (:name, :email, :phone, :address, :notes, :status, :enrollment_date, :plan, :fee, :billing_cycle, :renewal_date)`
+    `INSERT INTO clients (name, email, phone, address, notes, status, enrollment_date, plan, fee, billing_cycle, renewal_date, source)
+     VALUES (:name, :email, :phone, :address, :notes, :status, :enrollment_date, :plan, :fee, :billing_cycle, :renewal_date, :source)`
   ).run(input as unknown as Record<string, string | number | null>);
   revalidatePath("/clientes");
   revalidatePath("/");
@@ -41,7 +42,7 @@ export async function updateClientAction(id: number, formData: FormData) {
   db.prepare(
     `UPDATE clients SET name=:name, email=:email, phone=:phone, address=:address, notes=:notes,
      status=:status, enrollment_date=:enrollment_date, plan=:plan, fee=:fee,
-     billing_cycle=:billing_cycle, renewal_date=:renewal_date WHERE id=:id`
+     billing_cycle=:billing_cycle, renewal_date=:renewal_date, source=:source WHERE id=:id`
   ).run({ ...(input as unknown as Record<string, string | number | null>), id });
   revalidatePath("/clientes");
   revalidatePath(`/clientes/${id}`);
@@ -71,6 +72,7 @@ function parseClientForm(formData: FormData): ClientInput {
     fee: feeRaw ? Number(feeRaw) : null,
     billing_cycle: (formData.get("billing_cycle") as BillingCycle) || "mensual",
     renewal_date: (formData.get("renewal_date") as string) || null,
+    source: (formData.get("source") as string) || null,
   };
 }
 
@@ -178,4 +180,31 @@ export async function deleteRevisionAction(id: number, clientId: number) {
   revalidatePath("/revisiones");
   revalidatePath(`/clientes/${clientId}`);
   revalidatePath("/");
+}
+
+// ---------- Ad spend / marketing ----------
+
+export async function createAdSpendAction(formData: FormData) {
+  const db = getDb();
+  const date = String(formData.get("date") ?? todayISO());
+  const source = String(formData.get("source") ?? "Otro");
+  const amount = Number(formData.get("amount"));
+  const leads = Number(formData.get("leads") ?? 0) || 0;
+  const callsScheduled = Number(formData.get("calls_scheduled") ?? 0) || 0;
+  const closes = Number(formData.get("closes") ?? 0) || 0;
+  const notes = (formData.get("notes") as string) || null;
+
+  db.prepare(
+    `INSERT INTO ad_spend (date, source, amount, leads, calls_scheduled, closes, notes)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`
+  ).run(date, source, amount, leads, callsScheduled, closes, notes);
+
+  revalidatePath("/publicidad");
+  redirect("/publicidad");
+}
+
+export async function deleteAdSpendAction(id: number) {
+  const db = getDb();
+  db.prepare("DELETE FROM ad_spend WHERE id = ?").run(id);
+  revalidatePath("/publicidad");
 }

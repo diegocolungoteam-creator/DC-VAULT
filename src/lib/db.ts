@@ -69,13 +69,32 @@ function migrate(db: DatabaseSync) {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS ad_spend (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT NOT NULL,
+      source TEXT NOT NULL,
+      amount REAL NOT NULL,
+      leads INTEGER NOT NULL DEFAULT 0,
+      calls_scheduled INTEGER NOT NULL DEFAULT 0,
+      closes INTEGER NOT NULL DEFAULT 0,
+      notes TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
     CREATE INDEX IF NOT EXISTS idx_payments_client ON payments(client_id);
     CREATE INDEX IF NOT EXISTS idx_payments_date ON payments(date);
     CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date);
     CREATE INDEX IF NOT EXISTS idx_revisions_client ON revisions(client_id);
     CREATE INDEX IF NOT EXISTS idx_revisions_scheduled ON revisions(scheduled_date);
     CREATE INDEX IF NOT EXISTS idx_clients_renewal ON clients(renewal_date);
+    CREATE INDEX IF NOT EXISTS idx_ad_spend_date ON ad_spend(date);
+    CREATE INDEX IF NOT EXISTS idx_ad_spend_source ON ad_spend(source);
   `);
+
+  const clientColumns = db.prepare("PRAGMA table_info(clients)").all() as { name: string }[];
+  if (!clientColumns.some((c) => c.name === "source")) {
+    db.exec("ALTER TABLE clients ADD COLUMN source TEXT");
+  }
 }
 
 export function getDb(): DatabaseSync {

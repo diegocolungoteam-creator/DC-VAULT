@@ -47,8 +47,8 @@ export async function importClientsAction(
   }
 
   const insert = db.prepare(
-    `INSERT INTO clients (name, email, phone, address, notes, status, enrollment_date, plan, fee, billing_cycle, renewal_date)
-     VALUES (:name, :email, :phone, :address, :notes, :status, :enrollment_date, :plan, :fee, :billing_cycle, :renewal_date)`
+    `INSERT INTO clients (name, email, phone, address, notes, status, enrollment_date, plan, fee, billing_cycle, renewal_date, source)
+     VALUES (:name, :email, :phone, :address, :notes, :status, :enrollment_date, :plan, :fee, :billing_cycle, :renewal_date, :source)`
   );
 
   rows.forEach((row, i) => {
@@ -76,6 +76,7 @@ export async function importClientsAction(
       fee: parseFlexibleAmount(getMapped(row, mapping, "fee")),
       billing_cycle,
       renewal_date: parseFlexibleDate(getMapped(row, mapping, "renewal_date")),
+      source: getMapped(row, mapping, "source")?.trim() || null,
     });
     result.inserted++;
   });
