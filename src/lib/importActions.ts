@@ -27,6 +27,30 @@ function getMapped(row: Record<string, string>, mapping: Record<string, string>,
   return row[header];
 }
 
+function normalizeMatchKey(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+}
+
+/** Accent- and case-insensitive lookup of a client by name or email, built once per import run. */
+function buildClientMatcher(db: ReturnType<typeof getDb>) {
+  const clients = db.prepare("SELECT id, name, email FROM clients").all() as {
+    id: number;
+    name: string;
+    email: string | null;
+  }[];
+  const byKey = new Map<string, number>();
+  for (const c of clients) {
+    byKey.set(normalizeMatchKey(c.name), c.id);
+    if (c.email) byKey.set(normalizeMatchKey(c.email), c.id);
+  }
+  return (value: string): number | undefined => byKey.get(normalizeMatchKey(value));
+}
+
 const CLIENT_STATUSES: ClientStatus[] = ["activo", "inactivo", "baja"];
 const BILLING_CYCLES: BillingCycle[] = ["mensual", "trimestral", "semestral", "anual"];
 
@@ -102,8 +126,7 @@ export async function importPaymentsAction(
     return { inserted: 0, skipped: 0, errors: [`No se pudo leer el CSV: ${(e as Error).message}`] };
   }
 
-  const findByName = db.prepare("SELECT id FROM clients WHERE lower(name) = lower(?) LIMIT 1");
-  const findByEmail = db.prepare("SELECT id FROM clients WHERE lower(email) = lower(?) LIMIT 1");
+  const matchClient = buildClientMatcher(db);
   const insert = db.prepare(
     `INSERT INTO payments (client_id, date, amount, method, concept) VALUES (?, ?, ?, ?, ?)`
   );
@@ -118,10 +141,8 @@ export async function importPaymentsAction(
       result.errors.push(`Fila ${i + 2}: falta el nombre/email del cliente.`);
       return;
     }
-    const client =
-      (findByEmail.get(clientMatch) as { id: number } | undefined) ??
-      (findByName.get(clientMatch) as { id: number } | undefined);
-    if (!client) {
+    const clientId = matchClient(clientMatch);
+    if (!clientId) {
       result.skipped++;
       result.errors.push(`Fila ${i + 2}: no se encontró el cliente "${clientMatch}".`);
       return;
@@ -134,7 +155,7 @@ export async function importPaymentsAction(
       return;
     }
     insert.run(
-      client.id,
+      clientId,
       date,
       amount,
       getMapped(row, mapping, "method")?.trim() || null,
@@ -210,8 +231,7 @@ export async function importRevisionsAction(
     return { inserted: 0, skipped: 0, errors: [`No se pudo leer el CSV: ${(e as Error).message}`] };
   }
 
-  const findByName = db.prepare("SELECT id FROM clients WHERE lower(name) = lower(?) LIMIT 1");
-  const findByEmail = db.prepare("SELECT id FROM clients WHERE lower(email) = lower(?) LIMIT 1");
+  const matchClient = buildClientMatcher(db);
   const insert = db.prepare(
     `INSERT INTO revisions (client_id, scheduled_date, done_date, status, notes) VALUES (?, ?, ?, ?, ?)`
   );
@@ -223,10 +243,8 @@ export async function importRevisionsAction(
       result.errors.push(`Fila ${i + 2}: falta el nombre/email del cliente.`);
       return;
     }
-    const client =
-      (findByEmail.get(clientMatch) as { id: number } | undefined) ??
-      (findByName.get(clientMatch) as { id: number } | undefined);
-    if (!client) {
+    const clientId = matchClient(clientMatch);
+    if (!clientId) {
       result.skipped++;
       result.errors.push(`Fila ${i + 2}: no se encontró el cliente "${clientMatch}".`);
       return;
@@ -247,7 +265,7 @@ export async function importRevisionsAction(
           : "pendiente";
 
     insert.run(
-      client.id,
+      clientId,
       (scheduledDate ?? doneDate) as string,
       doneDate,
       status,
