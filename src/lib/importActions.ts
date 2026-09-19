@@ -4,6 +4,7 @@ import { parse } from "csv-parse/sync";
 import { revalidatePath } from "next/cache";
 import { getDb } from "./db";
 import { buildClientMatcher, normalizeMatchKey } from "./clientMatch";
+import { upsertRevision } from "./revisionUpsert";
 import { parseFlexibleAmount, parseFlexibleDate } from "./importParsers";
 import type { BillingCycle, ClientStatus } from "./types";
 
@@ -235,16 +236,6 @@ export async function importRevisionsAction(
   }
 
   const matchClient = buildClientMatcher(db);
-  const insert = db.prepare(
-    `INSERT INTO revisions (client_id, scheduled_date, done_date, status, notes) VALUES (?, ?, ?, ?, ?)`
-  );
-  const update = db.prepare(
-    `UPDATE revisions SET scheduled_date=?, done_date=?, status=?, notes=COALESCE(?, notes) WHERE id=?`
-  );
-  const findExisting = db.prepare(
-    `SELECT id FROM revisions WHERE client_id = ? AND (scheduled_date = ? OR done_date = ?) LIMIT 1`
-  );
-
   result.updated = 0;
 
   rows.forEach((row, i) => {
@@ -278,15 +269,9 @@ export async function importRevisionsAction(
     const effectiveScheduled = (scheduledDate ?? doneDate) as string;
     const notes = getMapped(row, mapping, "notes")?.trim() || null;
 
-    const existing = findExisting.get(clientId, effectiveScheduled, doneDate) as { id: number } | undefined;
-    if (existing) {
-      update.run(effectiveScheduled, doneDate, status, notes, existing.id);
-      result.updated!++;
-      return;
-    }
-
-    insert.run(clientId, effectiveScheduled, doneDate, status, notes);
-    result.inserted++;
+    const outcome = upsertRevision(db, { clientId, scheduledDate: effectiveScheduled, doneDate, status, notes });
+    if (outcome === "updated") result.updated!++;
+    else result.inserted++;
   });
 
   revalidatePath("/revisiones");

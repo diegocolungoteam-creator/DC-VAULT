@@ -117,6 +117,43 @@ Los leads importados quedan como clientes en estado "inactivo" con la nota
 "Importado de GoHighLevel (lead)"; cuando alguno se convierta en cliente de
 pago, edítalo y pásalo a "activo" con su plan y cuota.
 
+## Sincronizar check-ins desde Google Sheets
+
+Si sigues usando un Google Form (u otra hoja) donde el cliente marca su
+revisión/check-in, el botón **Sincronizar check-ins (Google Sheets)** en
+`/revisiones` lee esa hoja directamente y crea o actualiza las revisiones
+como "realizada" — sin exportar/importar CSV a mano. Es de solo lectura
+(nunca escribe en tu hoja) y seguro de repetir: si ya existe una revisión
+para ese cliente en esa fecha, la actualiza en vez de duplicarla.
+
+1. En [Google Cloud Console](https://console.cloud.google.com/): crea un
+   proyecto (o usa uno existente), activa la **Google Sheets API**, y crea
+   una **cuenta de servicio** (IAM y administración → Cuentas de servicio →
+   Crear). Genera una clave para esa cuenta en formato JSON y descárgala.
+2. Abre el JSON descargado: necesitas los campos `client_email` y
+   `private_key`.
+3. En tu hoja de Google Sheets, pulsa **Compartir** y añade el email de la
+   cuenta de servicio (termina en `.iam.gserviceaccount.com`) como
+   **Lector**.
+4. Copia el ID de la hoja (la parte de la URL entre `/d/` y `/edit`).
+5. Añade a tu `.env.local`:
+
+   ```
+   GOOGLE_SHEETS_CLIENT_EMAIL=xxxx@xxxx.iam.gserviceaccount.com
+   GOOGLE_SHEETS_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMII...\n-----END PRIVATE KEY-----\n"
+   GOOGLE_SHEETS_SPREADSHEET_ID=1Wu2me-5O54W...
+   GOOGLE_SHEETS_RANGE=A:U
+   ```
+
+   La clave privada va entre comillas y con los saltos de línea como `\n`
+   literales (así es como la exporta Google en el JSON).
+6. Reinicia `npm run dev` y pulsa **Sincronizar check-ins** en
+   `/revisiones`.
+
+El sistema busca automáticamente una columna de nombre (`Nombre`, `Name` o
+`Cliente`) y una de fecha de check-in (`Last_Checkin_At`, `checkin`,
+`fecha_checkin` o `ultimo_checkin`) en la primera fila de la hoja.
+
 ## Estructura del proyecto
 
 ```

@@ -8,6 +8,7 @@ import {
 import { getRevisionAlerts, listClients, listRevisions } from "@/lib/queries";
 import { RevisionStatusBadge } from "@/components/Badges";
 import { ConfirmButton } from "@/components/ConfirmButton";
+import { SheetCheckinSyncButton } from "@/components/SheetCheckinSyncButton";
 import { formatDateEs, todayISO } from "@/lib/dates";
 import { REVISION_ALERT_THRESHOLD_DAYS, type RevisionStatus } from "@/lib/types";
 
@@ -27,9 +28,12 @@ export default async function RevisionesPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-xl font-semibold">Revisiones</h1>
-        <p className="text-sm text-[var(--muted)]">Control de revisiones y seguimientos de clientes</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold">Revisiones</h1>
+          <p className="text-sm text-[var(--muted)]">Control de revisiones y seguimientos de clientes</p>
+        </div>
+        <SheetCheckinSyncButton />
       </div>
 
       <div className="card p-4">
