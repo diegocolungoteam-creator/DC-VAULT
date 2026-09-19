@@ -1,6 +1,15 @@
 import { getDb } from "./db";
-import { todayISO } from "./dates";
-import type { AdSpendEntry, Client, ClientStatus, Expense, Payment, Revision, RevisionStatus } from "./types";
+import { daysBetween, todayISO } from "./dates";
+import {
+  REVISION_ALERT_THRESHOLD_DAYS,
+  type AdSpendEntry,
+  type Client,
+  type ClientStatus,
+  type Expense,
+  type Payment,
+  type Revision,
+  type RevisionStatus,
+} from "./types";
 
 // ---------- Clients ----------
 
@@ -166,6 +175,9 @@ export function getDashboardStats() {
     }
   ).t;
 
+  const revisionAlerts = getRevisionAlerts(REVISION_ALERT_THRESHOLD_DAYS);
+  const recentlyCompletedRevisions = getRecentlyCompletedRevisions(7);
+
   return {
     activeClients,
     totalClients,
@@ -176,6 +188,8 @@ export function getDashboardStats() {
     monthIncome,
     monthExpense,
     monthBalance: monthIncome - monthExpense,
+    revisionAlerts,
+    recentlyCompletedRevisions,
   };
 }
 
@@ -323,4 +337,68 @@ export function getMarketingStats(opts: { from: string; to: string }) {
     costPerClose: totalCloses > 0 ? totalSpend / totalCloses : null,
     bySource,
   };
+}
+
+// ---------- Revision alerts ----------
+
+export interface RevisionAlert {
+  client_id: number;
+  client_name: string;
+  last_revision_date: string | null;
+  days_since: number | null;
+  pending_count: number;
+}
+
+export function getRevisionAlerts(thresholdDays: number): RevisionAlert[] {
+  const db = getDb();
+  const today = todayISO();
+  const rows = db
+    .prepare(
+      `SELECT
+         c.id as client_id,
+         c.name as client_name,
+         (SELECT MAX(done_date) FROM revisions r WHERE r.client_id = c.id AND r.status = 'realizada') as last_revision_date,
+         (SELECT COUNT(*) FROM revisions r WHERE r.client_id = c.id AND r.status = 'pendiente') as pending_count
+       FROM clients c
+       WHERE c.status = 'activo'`
+    )
+    .all() as { client_id: number; client_name: string; last_revision_date: string | null; pending_count: number }[];
+
+  return rows
+    .map((r) => ({
+      ...r,
+      days_since: r.last_revision_date ? daysBetween(r.last_revision_date, today) : null,
+    }))
+    .filter((r) => r.pending_count === 0 && (r.days_since === null || r.days_since >= thresholdDays))
+    .sort((a, b) => {
+      if (a.days_since === null && b.days_since === null) return a.client_name.localeCompare(b.client_name);
+      if (a.days_since === null) return -1;
+      if (b.days_since === null) return 1;
+      return b.days_since - a.days_since;
+    });
+}
+
+export function getRecentlyCompletedRevisions(days: number) {
+  const db = getDb();
+  const since = new Date();
+  since.setDate(since.getDate() - days);
+  const sinceISO = since.toISOString().slice(0, 10);
+  return db
+    .prepare(
+      `SELECT r.*, c.name as client_name FROM revisions r
+       JOIN clients c ON c.id = r.client_id
+       WHERE r.status = 'realizada' AND r.done_date >= ?
+       ORDER BY r.done_date DESC`
+    )
+    .all(sinceISO) as unknown as (Revision & { client_name: string })[];
+}
+
+export function getLastRevisionByClient(): Map<number, string> {
+  const db = getDb();
+  const rows = db
+    .prepare(
+      `SELECT client_id, MAX(done_date) as last_date FROM revisions WHERE status = 'realizada' GROUP BY client_id`
+    )
+    .all() as { client_id: number; last_date: string }[];
+  return new Map(rows.map((r) => [r.client_id, r.last_date]));
 }

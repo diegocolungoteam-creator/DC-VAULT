@@ -5,11 +5,11 @@ import {
   deleteRevisionAction,
   markRevisionDoneAction,
 } from "@/lib/actions";
-import { listClients, listRevisions } from "@/lib/queries";
+import { getRevisionAlerts, listClients, listRevisions } from "@/lib/queries";
 import { RevisionStatusBadge } from "@/components/Badges";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { formatDateEs, todayISO } from "@/lib/dates";
-import type { RevisionStatus } from "@/lib/types";
+import { REVISION_ALERT_THRESHOLD_DAYS, type RevisionStatus } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +22,7 @@ export default async function RevisionesPage({
   const status = (params.status as RevisionStatus | undefined) || undefined;
   const revisions = listRevisions({ status });
   const clients = listClients({ status: "activo" });
+  const alerts = getRevisionAlerts(REVISION_ALERT_THRESHOLD_DAYS);
   const today = todayISO();
 
   return (
@@ -29,6 +30,38 @@ export default async function RevisionesPage({
       <div>
         <h1 className="text-xl font-semibold">Revisiones</h1>
         <p className="text-sm text-[var(--muted)]">Control de revisiones y seguimientos de clientes</p>
+      </div>
+
+      <div className="card p-4">
+        <h2 className="mb-3 font-medium">
+          Clientes que necesitan revisión
+          <span className="ml-2 text-xs font-normal text-[var(--muted)]">
+            (sin revisión en {REVISION_ALERT_THRESHOLD_DAYS}+ días, o nunca)
+          </span>
+        </h2>
+        {alerts.length === 0 ? (
+          <p className="text-sm text-[var(--muted)]">
+            Todos los clientes activos tienen una revisión reciente o programada.
+          </p>
+        ) : (
+          <ul className="flex flex-col divide-y divide-[var(--border)]">
+            {alerts.map((a) => (
+              <li key={a.client_id} className="flex items-center justify-between gap-2 py-2 text-sm">
+                <Link href={`/clientes/${a.client_id}`} className="hover:underline">
+                  {a.client_name}
+                </Link>
+                <div className="flex items-center gap-3">
+                  <span className="text-[var(--danger)]">
+                    {a.days_since == null ? "Nunca revisado" : `Hace ${a.days_since} días`}
+                  </span>
+                  <Link href={`/clientes/${a.client_id}`} className="text-xs text-[var(--accent)]">
+                    Programar
+                  </Link>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="card p-4">

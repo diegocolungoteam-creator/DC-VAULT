@@ -83,6 +83,8 @@ export const PAYMENT_METHODS = [
   "otro",
 ] as const;
 
+export const REVISION_ALERT_THRESHOLD_DAYS = 60;
+
 export const LEAD_SOURCES = [
   "Meta Ads",
   "Google Ads",

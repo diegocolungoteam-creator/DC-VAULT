@@ -12,8 +12,8 @@ import {
 import { getClient, listPayments, listRevisions } from "@/lib/queries";
 import { ClientStatusBadge, RevisionStatusBadge } from "@/components/Badges";
 import { ConfirmButton } from "@/components/ConfirmButton";
-import { formatCurrencyEs, formatDateEs, todayISO } from "@/lib/dates";
-import { PAYMENT_METHODS } from "@/lib/types";
+import { daysBetween, formatCurrencyEs, formatDateEs, todayISO } from "@/lib/dates";
+import { PAYMENT_METHODS, REVISION_ALERT_THRESHOLD_DAYS } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +26,14 @@ export default async function ClienteDetailPage({ params }: { params: Promise<{ 
   const payments = listPayments({ clientId });
   const revisions = listRevisions({ clientId });
   const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
+
+  const lastRevisionDate = revisions
+    .filter((r) => r.status === "realizada" && r.done_date)
+    .map((r) => r.done_date as string)
+    .sort()
+    .at(-1);
+  const daysSinceRevision = lastRevisionDate ? daysBetween(lastRevisionDate, todayISO()) : null;
+  const revisionOverdue = client.status === "activo" && (daysSinceRevision == null || daysSinceRevision >= REVISION_ALERT_THRESHOLD_DAYS);
 
   return (
     <div className="flex flex-col gap-6">
@@ -63,6 +71,15 @@ export default async function ClienteDetailPage({ params }: { params: Promise<{ 
         />
         <InfoBox label="Próxima renovación" value={formatDateEs(client.renewal_date)} />
         <InfoBox label="Fuente" value={client.source ?? "—"} />
+        <InfoBox
+          label="Última revisión"
+          value={
+            lastRevisionDate
+              ? `${formatDateEs(lastRevisionDate)} (hace ${daysSinceRevision} días)`
+              : "Nunca revisado"
+          }
+          danger={revisionOverdue}
+        />
       </div>
 
       {client.address && <InfoBox label="Dirección" value={client.address} />}
@@ -185,11 +202,11 @@ export default async function ClienteDetailPage({ params }: { params: Promise<{ 
   );
 }
 
-function InfoBox({ label, value }: { label: string; value: string }) {
+function InfoBox({ label, value, danger }: { label: string; value: string; danger?: boolean }) {
   return (
     <div className="card p-4">
       <div className="text-xs font-medium text-[var(--muted)]">{label}</div>
-      <div className="mt-1 text-sm font-medium">{value}</div>
+      <div className={`mt-1 text-sm font-medium ${danger ? "text-[var(--danger)]" : ""}`}>{value}</div>
     </div>
   );
 }

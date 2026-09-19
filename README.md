@@ -14,7 +14,10 @@ de tu Mac y no necesitas conexión a internet para usarla una vez instalada.
 - **Pagos**: historial de pagos por cliente, con opción de actualizar
   automáticamente la próxima renovación al registrar un cobro.
 - **Revisiones**: control de revisiones/seguimientos pendientes, realizadas o
-  canceladas por cliente.
+  canceladas por cliente. El panel avisa de qué clientes activos no tienen una
+  revisión reciente (o nunca la han tenido) y muestra las completadas en los
+  últimos 7 días; el umbral de aviso (por defecto 60 días) se configura en
+  `REVISION_ALERT_THRESHOLD_DAYS` (`src/lib/types.ts`).
 - **Gastos**: registro de gastos por categoría.
 - **Contabilidad**: balance mensual (ingresos vs. gastos) y desglose de gastos
   por categoría, por año.

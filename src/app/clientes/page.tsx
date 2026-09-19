@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { listClients } from "@/lib/queries";
+import { getLastRevisionByClient, listClients } from "@/lib/queries";
 import { ClientStatusBadge } from "@/components/Badges";
-import { formatCurrencyEs, formatDateEs } from "@/lib/dates";
-import type { ClientStatus } from "@/lib/types";
+import { daysBetween, formatCurrencyEs, formatDateEs, todayISO } from "@/lib/dates";
+import { REVISION_ALERT_THRESHOLD_DAYS, type ClientStatus } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +15,8 @@ export default async function ClientesPage({
   const status = (params.status as ClientStatus | "todos") || "todos";
   const q = params.q ?? "";
   const clients = listClients({ status, search: q || undefined });
+  const lastRevisionByClient = getLastRevisionByClient();
+  const today = todayISO();
 
   return (
     <div className="flex flex-col gap-6">
@@ -56,6 +58,7 @@ export default async function ClientesPage({
               <th className="px-4 py-3 font-medium">Cuota</th>
               <th className="px-4 py-3 font-medium">Inscripción</th>
               <th className="px-4 py-3 font-medium">Renovación</th>
+              <th className="px-4 py-3 font-medium">Última revisión</th>
             </tr>
           </thead>
           <tbody>
@@ -74,11 +77,23 @@ export default async function ClientesPage({
                 <td className="px-4 py-3">{c.fee != null ? formatCurrencyEs(c.fee) : "—"}</td>
                 <td className="px-4 py-3">{formatDateEs(c.enrollment_date)}</td>
                 <td className="px-4 py-3">{formatDateEs(c.renewal_date)}</td>
+                <td className="px-4 py-3">
+                  {(() => {
+                    const lastDate = lastRevisionByClient.get(c.id);
+                    if (!lastDate) return <span className="text-[var(--danger)]">Nunca</span>;
+                    const days = daysBetween(lastDate, today);
+                    return (
+                      <span className={days >= REVISION_ALERT_THRESHOLD_DAYS ? "text-[var(--danger)]" : ""}>
+                        Hace {days} días
+                      </span>
+                    );
+                  })()}
+                </td>
               </tr>
             ))}
             {clients.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-[var(--muted)]">
+                <td colSpan={7} className="px-4 py-8 text-center text-[var(--muted)]">
                   No se encontraron clientes.
                 </td>
               </tr>
