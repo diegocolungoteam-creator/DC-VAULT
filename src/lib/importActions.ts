@@ -238,6 +238,14 @@ export async function importRevisionsAction(
   const insert = db.prepare(
     `INSERT INTO revisions (client_id, scheduled_date, done_date, status, notes) VALUES (?, ?, ?, ?, ?)`
   );
+  const update = db.prepare(
+    `UPDATE revisions SET scheduled_date=?, done_date=?, status=?, notes=COALESCE(?, notes) WHERE id=?`
+  );
+  const findExisting = db.prepare(
+    `SELECT id FROM revisions WHERE client_id = ? AND (scheduled_date = ? OR done_date = ?) LIMIT 1`
+  );
+
+  result.updated = 0;
 
   rows.forEach((row, i) => {
     const clientMatch = getMapped(row, mapping, "client_match")?.trim();
@@ -267,13 +275,17 @@ export async function importRevisionsAction(
           ? "realizada"
           : "pendiente";
 
-    insert.run(
-      clientId,
-      (scheduledDate ?? doneDate) as string,
-      doneDate,
-      status,
-      getMapped(row, mapping, "notes")?.trim() || null
-    );
+    const effectiveScheduled = (scheduledDate ?? doneDate) as string;
+    const notes = getMapped(row, mapping, "notes")?.trim() || null;
+
+    const existing = findExisting.get(clientId, effectiveScheduled, doneDate) as { id: number } | undefined;
+    if (existing) {
+      update.run(effectiveScheduled, doneDate, status, notes, existing.id);
+      result.updated!++;
+      return;
+    }
+
+    insert.run(clientId, effectiveScheduled, doneDate, status, notes);
     result.inserted++;
   });
 
