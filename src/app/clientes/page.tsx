@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getLastRevisionByClient, listClients } from "@/lib/queries";
 import { ClientStatusBadge } from "@/components/Badges";
+import { GhlSyncButton } from "@/components/GhlSyncButton";
 import { daysBetween, formatCurrencyEs, formatDateEs, todayISO } from "@/lib/dates";
 import { REVISION_ALERT_THRESHOLD_DAYS, type ClientStatus } from "@/lib/types";
 
@@ -25,9 +26,12 @@ export default async function ClientesPage({
           <h1 className="text-xl font-semibold">Clientes</h1>
           <p className="text-sm text-[var(--muted)]">{clients.length} resultado(s)</p>
         </div>
-        <Link href="/clientes/nuevo" className="btn btn-primary">
-          + Nuevo cliente
-        </Link>
+        <div className="flex items-start gap-2">
+          <GhlSyncButton />
+          <Link href="/clientes/nuevo" className="btn btn-primary">
+            + Nuevo cliente
+          </Link>
+        </div>
       </div>
 
       <form className="flex flex-wrap gap-2" method="get">

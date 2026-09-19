@@ -138,7 +138,8 @@ export function ImportWizard({
       {state && (
         <div className="card p-4">
           <p className="text-sm font-medium">
-            {state.inserted} importado(s), {state.skipped} omitido(s)
+            {state.inserted} nuevo(s)
+            {!!state.updated && <>, {state.updated} actualizado(s)</>}, {state.skipped} omitido(s)
           </p>
           {state.errors.length > 0 && (
             <ul className="mt-2 max-h-48 overflow-y-auto text-xs text-[var(--muted)]">

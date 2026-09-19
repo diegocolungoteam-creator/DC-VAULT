@@ -3,11 +3,13 @@
 import { parse } from "csv-parse/sync";
 import { revalidatePath } from "next/cache";
 import { getDb } from "./db";
+import { buildClientMatcher, normalizeMatchKey } from "./clientMatch";
 import { parseFlexibleAmount, parseFlexibleDate } from "./importParsers";
 import type { BillingCycle, ClientStatus } from "./types";
 
 export interface ImportResult {
   inserted: number;
+  updated?: number;
   skipped: number;
   errors: string[];
 }
@@ -25,30 +27,6 @@ function getMapped(row: Record<string, string>, mapping: Record<string, string>,
   const header = mapping[field];
   if (!header) return undefined;
   return row[header];
-}
-
-function normalizeMatchKey(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, " ");
-}
-
-/** Accent- and case-insensitive lookup of a client by name or email, built once per import run. */
-function buildClientMatcher(db: ReturnType<typeof getDb>) {
-  const clients = db.prepare("SELECT id, name, email FROM clients").all() as {
-    id: number;
-    name: string;
-    email: string | null;
-  }[];
-  const byKey = new Map<string, number>();
-  for (const c of clients) {
-    byKey.set(normalizeMatchKey(c.name), c.id);
-    if (c.email) byKey.set(normalizeMatchKey(c.email), c.id);
-  }
-  return (value: string): number | undefined => byKey.get(normalizeMatchKey(value));
 }
 
 const CLIENT_STATUSES: ClientStatus[] = ["activo", "inactivo", "baja"];
@@ -70,10 +48,19 @@ export async function importClientsAction(
     return { inserted: 0, skipped: 0, errors: [`No se pudo leer el CSV: ${(e as Error).message}`] };
   }
 
+  const matchClient = buildClientMatcher(db);
+  const localMatches = new Map<string, number>();
   const insert = db.prepare(
     `INSERT INTO clients (name, email, phone, address, notes, status, enrollment_date, plan, fee, billing_cycle, renewal_date, source)
      VALUES (:name, :email, :phone, :address, :notes, :status, :enrollment_date, :plan, :fee, :billing_cycle, :renewal_date, :source)`
   );
+  const update = db.prepare(
+    `UPDATE clients SET name=:name, email=:email, phone=:phone, address=:address, notes=:notes,
+     status=:status, enrollment_date=:enrollment_date, plan=:plan, fee=:fee,
+     billing_cycle=:billing_cycle, renewal_date=:renewal_date, source=:source WHERE id=:id`
+  );
+
+  result.updated = 0;
 
   rows.forEach((row, i) => {
     const name = getMapped(row, mapping, "name")?.trim();
@@ -88,9 +75,10 @@ export async function importClientsAction(
     const cycleRaw = getMapped(row, mapping, "billing_cycle")?.trim().toLowerCase();
     const billing_cycle = BILLING_CYCLES.includes(cycleRaw as BillingCycle) ? (cycleRaw as BillingCycle) : "mensual";
 
-    insert.run({
+    const email = getMapped(row, mapping, "email")?.trim() || null;
+    const fields = {
       name,
-      email: getMapped(row, mapping, "email")?.trim() || null,
+      email,
       phone: getMapped(row, mapping, "phone")?.trim() || null,
       address: getMapped(row, mapping, "address")?.trim() || null,
       notes: getMapped(row, mapping, "notes")?.trim() || null,
@@ -101,7 +89,22 @@ export async function importClientsAction(
       billing_cycle,
       renewal_date: parseFlexibleDate(getMapped(row, mapping, "renewal_date")),
       source: getMapped(row, mapping, "source")?.trim() || null,
-    });
+    };
+
+    const existingId = localMatches.get(normalizeMatchKey(name)) ?? matchClient(name) ?? (email ? matchClient(email) : undefined);
+
+    if (existingId) {
+      update.run({ ...fields, id: existingId });
+      result.updated!++;
+      localMatches.set(normalizeMatchKey(name), existingId);
+      if (email) localMatches.set(normalizeMatchKey(email), existingId);
+      return;
+    }
+
+    const info = insert.run(fields);
+    const newId = Number(info.lastInsertRowid);
+    localMatches.set(normalizeMatchKey(name), newId);
+    if (email) localMatches.set(normalizeMatchKey(email), newId);
     result.inserted++;
   });
 

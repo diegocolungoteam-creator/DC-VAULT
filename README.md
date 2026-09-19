@@ -90,6 +90,33 @@ npm run start
 Importa primero los **clientes**, y después los **pagos** (que se relacionan
 por nombre o email exacto del cliente).
 
+## Conectar con GoHighLevel (leads)
+
+El botón **Sincronizar con GoHighLevel** en `/clientes` trae los contactos
+de tu subcuenta de GHL como clientes nuevos (estado "inactivo", como lead
+sin convertir todavía) sin pisar los que ya existan. Es una sincronización
+manual y en un solo sentido (GHL → CRM); GHL sigue siendo el dueño de tus
+leads y automatizaciones.
+
+1. En GoHighLevel: **Configuración → Private Integrations → Crear integración
+   privada**, con permisos de lectura de Contactos ("Contacts.readonly"
+   basta). Copia el token que te da (empieza por `pit-`).
+2. Copia también el **Location ID** de tu subcuenta (Configuración → General).
+3. Crea un fichero `.env.local` en la raíz del proyecto (no se sube a git)
+   con:
+
+   ```
+   GHL_API_TOKEN=pit-xxxxxxxx
+   GHL_LOCATION_ID=xxxxxxxx
+   ```
+
+4. Reinicia `npm run dev` y pulsa **Sincronizar con GoHighLevel** en
+   `/clientes`.
+
+Los leads importados quedan como clientes en estado "inactivo" con la nota
+"Importado de GoHighLevel (lead)"; cuando alguno se convierta en cliente de
+pago, edítalo y pásalo a "activo" con su plan y cuota.
+
 ## Estructura del proyecto
 
 ```
