@@ -1,0 +1,194 @@
+"use server";
+
+import { parse } from "csv-parse/sync";
+import { revalidatePath } from "next/cache";
+import { getDb } from "./db";
+import { parseFlexibleAmount, parseFlexibleDate } from "./importParsers";
+import type { BillingCycle, ClientStatus } from "./types";
+
+export interface ImportResult {
+  inserted: number;
+  skipped: number;
+  errors: string[];
+}
+
+function parseCsv(csvText: string): Record<string, string>[] {
+  return parse(csvText, {
+    columns: true,
+    skip_empty_lines: true,
+    trim: true,
+    relax_column_count: true,
+  }) as Record<string, string>[];
+}
+
+function getMapped(row: Record<string, string>, mapping: Record<string, string>, field: string): string | undefined {
+  const header = mapping[field];
+  if (!header) return undefined;
+  return row[header];
+}
+
+const CLIENT_STATUSES: ClientStatus[] = ["activo", "inactivo", "baja"];
+const BILLING_CYCLES: BillingCycle[] = ["mensual", "trimestral", "semestral", "anual"];
+
+export async function importClientsAction(
+  _prev: ImportResult | null,
+  formData: FormData
+): Promise<ImportResult> {
+  const csvText = String(formData.get("csv_text") ?? "");
+  const mapping = JSON.parse(String(formData.get("mapping") ?? "{}")) as Record<string, string>;
+  const db = getDb();
+
+  const result: ImportResult = { inserted: 0, skipped: 0, errors: [] };
+  let rows: Record<string, string>[];
+  try {
+    rows = parseCsv(csvText);
+  } catch (e) {
+    return { inserted: 0, skipped: 0, errors: [`No se pudo leer el CSV: ${(e as Error).message}`] };
+  }
+
+  const insert = db.prepare(
+    `INSERT INTO clients (name, email, phone, address, notes, status, enrollment_date, plan, fee, billing_cycle, renewal_date)
+     VALUES (:name, :email, :phone, :address, :notes, :status, :enrollment_date, :plan, :fee, :billing_cycle, :renewal_date)`
+  );
+
+  rows.forEach((row, i) => {
+    const name = getMapped(row, mapping, "name")?.trim();
+    if (!name) {
+      result.skipped++;
+      result.errors.push(`Fila ${i + 2}: falta el nombre, se omite.`);
+      return;
+    }
+    const statusRaw = getMapped(row, mapping, "status")?.trim().toLowerCase();
+    const status = CLIENT_STATUSES.includes(statusRaw as ClientStatus) ? (statusRaw as ClientStatus) : "activo";
+
+    const cycleRaw = getMapped(row, mapping, "billing_cycle")?.trim().toLowerCase();
+    const billing_cycle = BILLING_CYCLES.includes(cycleRaw as BillingCycle) ? (cycleRaw as BillingCycle) : "mensual";
+
+    insert.run({
+      name,
+      email: getMapped(row, mapping, "email")?.trim() || null,
+      phone: getMapped(row, mapping, "phone")?.trim() || null,
+      address: getMapped(row, mapping, "address")?.trim() || null,
+      notes: getMapped(row, mapping, "notes")?.trim() || null,
+      status,
+      enrollment_date: parseFlexibleDate(getMapped(row, mapping, "enrollment_date")),
+      plan: getMapped(row, mapping, "plan")?.trim() || null,
+      fee: parseFlexibleAmount(getMapped(row, mapping, "fee")),
+      billing_cycle,
+      renewal_date: parseFlexibleDate(getMapped(row, mapping, "renewal_date")),
+    });
+    result.inserted++;
+  });
+
+  revalidatePath("/clientes");
+  revalidatePath("/");
+  return result;
+}
+
+export async function importPaymentsAction(
+  _prev: ImportResult | null,
+  formData: FormData
+): Promise<ImportResult> {
+  const csvText = String(formData.get("csv_text") ?? "");
+  const mapping = JSON.parse(String(formData.get("mapping") ?? "{}")) as Record<string, string>;
+  const db = getDb();
+
+  const result: ImportResult = { inserted: 0, skipped: 0, errors: [] };
+  let rows: Record<string, string>[];
+  try {
+    rows = parseCsv(csvText);
+  } catch (e) {
+    return { inserted: 0, skipped: 0, errors: [`No se pudo leer el CSV: ${(e as Error).message}`] };
+  }
+
+  const findByName = db.prepare("SELECT id FROM clients WHERE lower(name) = lower(?) LIMIT 1");
+  const findByEmail = db.prepare("SELECT id FROM clients WHERE lower(email) = lower(?) LIMIT 1");
+  const insert = db.prepare(
+    `INSERT INTO payments (client_id, date, amount, method, concept) VALUES (?, ?, ?, ?, ?)`
+  );
+
+  rows.forEach((row, i) => {
+    const clientMatch = getMapped(row, mapping, "client_match")?.trim();
+    const dateRaw = getMapped(row, mapping, "date");
+    const amountRaw = getMapped(row, mapping, "amount");
+
+    if (!clientMatch) {
+      result.skipped++;
+      result.errors.push(`Fila ${i + 2}: falta el nombre/email del cliente.`);
+      return;
+    }
+    const client =
+      (findByEmail.get(clientMatch) as { id: number } | undefined) ??
+      (findByName.get(clientMatch) as { id: number } | undefined);
+    if (!client) {
+      result.skipped++;
+      result.errors.push(`Fila ${i + 2}: no se encontró el cliente "${clientMatch}".`);
+      return;
+    }
+    const date = parseFlexibleDate(dateRaw);
+    const amount = parseFlexibleAmount(amountRaw);
+    if (!date || amount == null) {
+      result.skipped++;
+      result.errors.push(`Fila ${i + 2}: fecha o importe inválido.`);
+      return;
+    }
+    insert.run(
+      client.id,
+      date,
+      amount,
+      getMapped(row, mapping, "method")?.trim() || null,
+      getMapped(row, mapping, "concept")?.trim() || null
+    );
+    result.inserted++;
+  });
+
+  revalidatePath("/pagos");
+  revalidatePath("/");
+  revalidatePath("/contabilidad");
+  return result;
+}
+
+export async function importExpensesAction(
+  _prev: ImportResult | null,
+  formData: FormData
+): Promise<ImportResult> {
+  const csvText = String(formData.get("csv_text") ?? "");
+  const mapping = JSON.parse(String(formData.get("mapping") ?? "{}")) as Record<string, string>;
+  const db = getDb();
+
+  const result: ImportResult = { inserted: 0, skipped: 0, errors: [] };
+  let rows: Record<string, string>[];
+  try {
+    rows = parseCsv(csvText);
+  } catch (e) {
+    return { inserted: 0, skipped: 0, errors: [`No se pudo leer el CSV: ${(e as Error).message}`] };
+  }
+
+  const insert = db.prepare(
+    `INSERT INTO expenses (date, amount, category, description) VALUES (?, ?, ?, ?)`
+  );
+
+  rows.forEach((row, i) => {
+    const dateRaw = getMapped(row, mapping, "date");
+    const amountRaw = getMapped(row, mapping, "amount");
+    const date = parseFlexibleDate(dateRaw);
+    const amount = parseFlexibleAmount(amountRaw);
+    if (!date || amount == null) {
+      result.skipped++;
+      result.errors.push(`Fila ${i + 2}: fecha o importe inválido.`);
+      return;
+    }
+    insert.run(
+      date,
+      amount,
+      getMapped(row, mapping, "category")?.trim() || "general",
+      getMapped(row, mapping, "description")?.trim() || null
+    );
+    result.inserted++;
+  });
+
+  revalidatePath("/gastos");
+  revalidatePath("/");
+  revalidatePath("/contabilidad");
+  return result;
+}
