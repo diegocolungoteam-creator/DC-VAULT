@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Test de Estancamiento</title>
+<meta name="description" content="6 preguntas, 1 minuto. Diagnóstico por áreas de tu entrenamiento y tu nutrición." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #070d18;
+    --card: #0f1b2d;
+    --card-2: #13223a;
+    --line: rgba(120, 170, 230, 0.14);
+    --text: #eef3fa;
+    --muted: #9aabc2;
+    --accent: #4a9be0;
+    --accent-2: #2f7fc9;
+    --accent-glow: rgba(74, 155, 224, 0.45);
+    --good: #3ecf8e;
+    --mid: #f2b84b;
+    --bad: #f26b5b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+  /* Fondo: foto opcional (CONFIG.backgroundImage) + halo azul */
+  .bg {
+    position: fixed; inset: 0; z-index: -2;
+    background-size: cover; background-position: center;
+    filter: brightness(0.35) saturate(0.9);
+  }
+  .bg::after {
+    content: ""; position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 45% at 30% 0%, rgba(74,155,224,0.28), transparent 70%),
+      linear-gradient(180deg, rgba(7,13,24,0.35), rgba(7,13,24,0.85));
+  }
+
+  .card {
+    width: 100%;
+    max-width: 440px;
+    background: linear-gradient(180deg, var(--card-2), var(--card));
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 32px 26px 24px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.02) inset;
+    position: relative;
+  }
+  .screen { display: none; animation: in .35s ease both; }
+  .screen.active { display: block; }
+  @keyframes in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  /* Logo */
+  .logo {
+    width: 116px; height: 116px; margin: 0 auto 18px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 40%, #16304f, #0a1626 70%);
+    border: 3px solid var(--accent);
+    box-shadow: 0 0 0 8px rgba(10,22,38,0.9), 0 0 38px var(--accent-glow);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    font-family: "Bebas Neue", sans-serif; font-size: 44px; letter-spacing: 1px; color: var(--text);
+  }
+  .logo img { width: 100%; height: 100%; object-fit: cover; }
+  .brand {
+    text-align: center;
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 26px; letter-spacing: 3px;
+    margin-bottom: 22px;
+  }
+  h1, h2 {
+    font-family: "Bebas Neue", sans-serif;
+    font-weight: 400;
+    line-height: 0.98;
+    letter-spacing: 0.5px;
+  }
+  h1 { font-size: 44px; margin-bottom: 16px; }
+  h2 { font-size: 34px; margin-bottom: 18px; }
+  .hl { color: var(--accent); }
+  p.lead { color: #c9d4e3; font-size: 16px; line-height: 1.6; margin-bottom: 26px; }
+
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%;
+    background: var(--accent);
+    color: #0b1626;
+    border: 0; border-radius: 14px;
+    padding: 18px 20px;
+    font-family: inherit; font-size: 15px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+    cursor: pointer;
+    transition: transform .12s ease, background .2s ease, box-shadow .2s ease;
+    box-shadow: 0 10px 30px rgba(74,155,224,0.25);
+    text-decoration: none;
+    text-align: center;
+  }
+  .btn:hover { background: #5aa8ea; }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+
+  .meta { display: flex; justify-content: center; gap: 18px; margin-top: 16px; font-size: 13px; color: var(--muted); }
+  .meta b { color: var(--text); font-weight: 700; }
+
+  /* Progreso */
+  .top { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+  .back {
+    background: none; border: 1px solid var(--line); color: var(--muted);
+    width: 36px; height: 36px; border-radius: 10px; cursor: pointer; font-size: 18px; flex-shrink: 0;
+  }
+  .back:hover { color: var(--text); border-color: var(--accent); }
+  .back[hidden] { visibility: hidden; display: block; }
+  .bar { flex: 1; height: 6px; background: rgba(255,255,255,0.07); border-radius: 99px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 99px; transition: width .35s ease; }
+  .step { font-size: 12px; color: var(--muted); font-weight: 600; min-width: 34px; text-align: right; }
+  .area-tag {
+    display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--accent); background: rgba(74,155,224,0.12); border-radius: 99px; padding: 5px 10px; margin-bottom: 12px;
+  }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .opt {
+    text-align: left; width: 100%;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--line);
+    color: var(--text);
+    border-radius: 14px;
+    padding: 15px 16px;
+    font-family: inherit; font-size: 15px; line-height: 1.4;
+    cursor: pointer;
+    display: flex; gap: 12px; align-items: center;
+    transition: border-color .15s ease, background .15s ease, transform .1s ease;
+  }
+  .opt:hover { border-color: rgba(74,155,224,0.6); background: rgba(74,155,224,0.06); }
+  .opt:active { transform: scale(0.99); }
+  .opt.sel { border-color: var(--accent); background: rgba(74,155,224,0.14); }
+  .opt .k {
+    flex-shrink: 0; width: 26px; height: 26px; border-radius: 8px;
+    border: 1px solid var(--line); color: var(--muted);
+    display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;
+  }
+  .opt.sel .k { background: var(--accent); color: #0b1626; border-color: var(--accent); }
+
+  /* Formulario */
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; letter-spacing: .3px; }
+  .field input {
+    width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--line); color: var(--text);
+    border-radius: 12px; padding: 14px 14px; font-family: inherit; font-size: 16px;
+  }
+  .field input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,155,224,0.2); }
+  .legal { font-size: 11.5px; color: var(--muted); line-height: 1.5; margin: 6px 0 16px; }
+  .legal input { vertical-align: -2px; margin-right: 6px; accent-color: var(--accent); }
+  .err { color: var(--bad); font-size: 13px; margin-bottom: 10px; min-height: 18px; }
+
+  /* Cargando */
+  .loading { text-align: center; padding: 30px 0 10px; }
+  .spinner {
+    width: 56px; height: 56px; margin: 0 auto 22px; border-radius: 50%;
+    border: 4px solid rgba(74,155,224,0.18); border-top-color: var(--accent);
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-steps { color: var(--muted); font-size: 14px; line-height: 2; }
+  .loading-steps .done { color: var(--text); }
+  .loading-steps .done::before { content: "✓ "; color: var(--good); }
+
+  /* Resultados */
+  .score {
+    display: flex; align-items: center; gap: 18px; margin-bottom: 22px;
+    background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 16px; padding: 16px;
+  }
+  .ring { width: 86px; height: 86px; flex-shrink: 0; position: relative; }
+  .ring svg { transform: rotate(-90deg); }
+  .ring .num {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-family: "Bebas Neue", sans-serif; font-size: 30px;
+  }
+  .score .lbl { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+  .score .verdict { font-family: "Bebas Neue", sans-serif; font-size: 26px; line-height: 1; margin-top: 4px; }
+
+  .areas { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; }
+  .area .row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; font-size: 14px; font-weight: 600; }
+  .area .st { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .area .track { height: 8px; background: rgba(255,255,255,0.07); border-radius: 99px; overflow: hidden; }
+  .area .track > i { display: block; height: 100%; width: 0; border-radius: 99px; transition: width .9s cubic-bezier(.2,.8,.2,1); }
+
+  .leaks-title { font-family: "Bebas Neue", sans-serif; font-size: 24px; letter-spacing: .5px; margin-bottom: 12px; }
+  .leak {
+    border-left: 3px solid var(--bad);
+    background: rgba(242,107,91,0.06);
+    border-radius: 0 12px 12px 0;
+    padding: 12px 14px; margin-bottom: 10px;
+  }
+  .leak.mid { border-color: var(--mid); background: rgba(242,184,75,0.06); }
+  .leak.good { border-color: var(--good); background: rgba(62,207,142,0.06); }
+  .leak b { display: block; font-size: 14px; margin-bottom: 4px; }
+  .leak span { font-size: 14px; color: #c9d4e3; line-height: 1.55; }
+  .cta-box { margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--line); }
+  .cta-box p { color: #c9d4e3; font-size: 15px; line-height: 1.55; margin-bottom: 16px; }
+  .restart { display: block; margin: 14px auto 0; background: none; border: 0; color: var(--muted); font: inherit; font-size: 13px; cursor: pointer; text-decoration: underline; }
+
+  @media (max-width: 380px) {
+    .card { padding: 26px 18px 20px; }
+    h1 { font-size: 38px; }
+    h2 { font-size: 30px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="bg" id="bg"></div>
+
+<main class="card">
+  <!-- INTRO -->
+  <section class="screen active" id="s-intro">
+    <div class="logo" id="logo"></div>
+    <div class="brand" id="brand"></div>
+    <h1 id="intro-title"></h1>
+    <p class="lead" id="intro-text"></p>
+    <button class="btn" id="start">Empezar el test →</button>
+    <div class="meta"><span><b id="meta-q">6</b> preguntas</span><span><b>1</b> min</span><span>Gratis</span></div>
+  </section>
+
+  <!-- PREGUNTAS -->
+  <section class="screen" id="s-quiz">
+    <div class="top">
+      <button class="back" id="back" aria-label="Pregunta anterior">←</button>
+      <div class="bar"><i id="bar"></i></div>
+      <div class="step" id="step"></div>
+    </div>
+    <span class="area-tag" id="q-area"></span>
+    <h2 id="q-title"></h2>
+    <div class="options" id="q-opts"></div>
+  </section>
+
+  <!-- CAPTURA DE LEAD -->
+  <section class="screen" id="s-lead">
+    <div class="top">
+      <button class="back" id="back-lead" aria-label="Volver">←</button>
+      <div class="bar"><i style="width:100%"></i></div>
+      <div class="step">✓</div>
+    </div>
+    <h2>Tu diagnóstico <span class="hl">está listo</span></h2>
+    <p class="lead" style="margin-bottom:18px">Dime a quién se lo preparo y te enseño exactamente dónde se te está escapando el progreso.</p>
+    <form id="lead-form" novalidate>
+      <div class="field"><label for="f-name">Nombre</label><input id="f-name" name="name" autocomplete="given-name" placeholder="Tu nombre" required /></div>
+      <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" placeholder="tu@email.com" required /></div>
+      <div class="field" id="phone-field"><label for="f-phone">WhatsApp</label><input id="f-phone" name="phone" type="tel" autocomplete="tel" placeholder="+34 600 000 000" /></div>
+      <label class="legal"><input type="checkbox" id="f-ok" /><span id="legal-text"></span></label>
+      <div class="err" id="err"></div>
+      <button class="btn" type="submit" id="submit">Ver mi diagnóstico →</button>
+    </form>
+  </section>
+
+  <!-- CARGANDO -->
+  <section class="screen" id="s-loading">
+    <div class="loading">
+      <div class="spinner"></div>
+      <h2 style="margin-bottom:14px">Analizando tus respuestas</h2>
+      <div class="loading-steps" id="loading-steps"></div>
+    </div>
+  </section>
+
+  <!-- RESULTADOS -->
+  <section class="screen" id="s-result">
+    <div class="brand" style="margin-bottom:14px" id="brand-2"></div>
+    <h2 id="r-title"></h2>
+    <div class="score">
+      <div class="ring">
+        <svg width="86" height="86" viewBox="0 0 86 86">
+          <circle cx="43" cy="43" r="37" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="8" />
+          <circle id="ring" cx="43" cy="43" r="37" fill="none" stroke="var(--accent)" stroke-width="8" stroke-linecap="round"
+            stroke-dasharray="232.5" stroke-dashoffset="232.5" style="transition: stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1)" />
+        </svg>
+        <div class="num" id="r-score">0</div>
+      </div>
+      <div>
+        <div class="lbl">Tu puntuación</div>
+        <div class="verdict" id="r-verdict"></div>
+      </div>
+    </div>
+    <div class="areas" id="r-areas"></div>
+    <div class="leaks-title">Dónde se te escapa el progreso</div>
+    <div id="r-leaks"></div>
+    <div class="cta-box">
+      <p id="cta-text"></p>
+      <a class="btn" id="cta" target="_blank" rel="noopener"></a>
+      <button class="restart" id="restart">Repetir el test</button>
+    </div>
+  </section>
+</main>
+
+<script>
+/* =====================================================================
+   CONFIGURACIÓN — cambia aquí marca, textos, enlaces y preguntas.
+   ===================================================================== */
+const CONFIG = {
+  brand: "DC TEAM",
+  // Logo: ruta/URL de una imagen redonda (ej. "/logo.png"). Si queda vacío se muestran las iniciales.
+  logo: "",
+  logoInitials: "DC",
+  // Foto de fondo opcional detrás de la tarjeta (ej. "/fondo.jpg").
+  backgroundImage: "",
+
+  introTitle: '¿Por qué llevas meses <span class="hl">estancado</span>?',
+  introText: "6 preguntas, 1 minuto. Te hago un diagnóstico por áreas de tu entrenamiento y tu nutrición, y te digo exactamente dónde se te está escapando el progreso. Sin humo.",
+
+  // Pedir datos antes de enseñar el resultado (true) o mostrarlo directamente (false).
+  captureLead: true,
+  askPhone: true,
+  legalText: "Acepto recibir mi diagnóstico y comunicaciones sobre el programa. Puedo darme de baja cuando quiera.",
+
+  // Webhook donde se envía el lead (ej. Inbound Webhook de un workflow de GoHighLevel,
+  // Zapier, Make...). Se envía un POST JSON con nombre, email, teléfono, respuestas y puntuaciones.
+  webhookUrl: "",
+
+  // Botón final
+  ctaText: "Esto tiene solución, y no pasa por entrenar más horas. Si quieres que revise tu caso y te diga qué cambiar primero, aplica a una llamada gratuita conmigo.",
+  ctaLabel: "Quiero salir del estancamiento →",
+  ctaUrl: "https://wa.me/34600000000?text=Hola%2C%20acabo%20de%20hacer%20el%20test%20de%20estancamiento",
+};
+
+/* Cada pregunta evalúa un área. Puntos: 3 = bien, 0 = fuga de progreso.
+   tips: explicación que se muestra en el resultado según el nivel del área. */
+const QUESTIONS = [
+  {
+    area: "Progresión",
+    q: "¿Cómo decides el peso y las repeticiones de cada sesión?",
+    options: [
+      { t: "Sigo un plan y lo apunto todo para superar la sesión anterior", p: 3 },
+      { t: "Intento subir cuando me noto fuerte, pero sin registro", p: 2 },
+      { t: "Suelo mover más o menos lo mismo de siempre", p: 1 },
+      { t: "Improviso según me pille el día", p: 0 },
+    ],
+    tips: {
+      bad: "Sin sobrecarga progresiva registrada, tu cuerpo no tiene motivo para cambiar. Si no sabes qué levantaste la semana pasada, no puedes superarlo.",
+      mid: "Progresas a ratos, pero sin un sistema. Apuntar cargas y repeticiones y tener una regla clara de cuándo subir te desbloquea semanas de avance.",
+      good: "Tu progresión está bien planteada. Mantén el registro y revisa cada 4-6 semanas que las cargas siguen subiendo.",
+    },
+  },
+  {
+    area: "Intensidad",
+    q: "Cuando terminas una serie, ¿cuántas repeticiones más podrías haber hecho?",
+    options: [
+      { t: "0-2: acabo muy cerca del fallo con buena técnica", p: 3 },
+      { t: "3-4: aprieto, pero me guardo algo", p: 2 },
+      { t: "5 o más: paro cuando llego al número que toca", p: 0 },
+      { t: "Ni idea, nunca me lo he planteado", p: 1 },
+    ],
+    tips: {
+      bad: "Estás entrenando lejos del fallo: haces el volumen pero no el estímulo. Series más duras y menos 'relleno' valen más que añadir ejercicios.",
+      mid: "Te falta un punto de intensidad o de control. Aprende a medir las repeticiones en recámara (RIR) y lleva las series efectivas a 0-2.",
+      good: "Tu intensidad es la correcta. Vigila que la técnica no se degrade al acercarte al fallo.",
+    },
+  },
+  {
+    area: "Calorías",
+    q: "¿Sabes cuántas calorías comes en un día normal?",
+    options: [
+      { t: "Sí, las controlo y las ajusto según mi objetivo", p: 3 },
+      { t: "Más o menos, lo estimo a ojo", p: 2 },
+      { t: "No, como 'sano' y ya", p: 1 },
+      { t: "No, y como bastante distinto cada día", p: 0 },
+    ],
+    tips: {
+      bad: "Comer 'sano' no es lo mismo que comer lo que tu objetivo necesita. Sin saber tus calorías, ni ganas músculo ni pierdes grasa de forma predecible.",
+      mid: "Ir a ojo funciona hasta que deja de funcionar. Controla 2-3 semanas para calibrar y luego ya puedes estimar con criterio.",
+      good: "Controlas tu energía. Revisa el peso medio semanal para saber cuándo ajustar.",
+    },
+  },
+  {
+    area: "Proteína",
+    q: "¿Cuánta proteína tomas al día?",
+    options: [
+      { t: "Unos 1,6-2,2 g por kilo de peso, casi todos los días", p: 3 },
+      { t: "Intento tomar bastante, pero no la cuento", p: 2 },
+      { t: "Solo el batido después de entrenar", p: 1 },
+      { t: "No tengo ni idea", p: 0 },
+    ],
+    tips: {
+      bad: "Sin proteína suficiente no hay material para construir músculo, por muy bien que entrenes. Es la fuga más fácil de tapar.",
+      mid: "Probablemente te quedas corto varios días. Reparte 3-4 tomas de proteína al día y llegarás sin esfuerzo al objetivo.",
+      good: "Tu proteína está cubierta. Perfecto: aquí no se te escapa nada.",
+    },
+  },
+  {
+    area: "Descanso",
+    q: "¿Cuántas horas duermes de media?",
+    options: [
+      { t: "7-9 horas, y con horarios bastante fijos", p: 3 },
+      { t: "Unas 6-7 horas", p: 2 },
+      { t: "Menos de 6 horas", p: 0 },
+      { t: "Muy irregular: depende del día", p: 1 },
+    ],
+    tips: {
+      bad: "Dormir poco sube el cansancio, baja el rendimiento y frena la recuperación. Estás entrenando para un cuerpo que no se recupera.",
+      mid: "Tu descanso es justo. Ganar 30-60 minutos de sueño y fijar horarios suele notarse en fuerza en pocas semanas.",
+      good: "Descansas bien. Es una ventaja que mucha gente no tiene: aprovéchala.",
+    },
+  },
+  {
+    area: "Constancia",
+    q: "En los últimos 3 meses, ¿cuántas semanas has cumplido tu plan completo?",
+    options: [
+      { t: "Casi todas: fallo muy poco", p: 3 },
+      { t: "La mayoría, con alguna semana mala", p: 2 },
+      { t: "Voy a rachas: semanas buenas y semanas perdidas", p: 1 },
+      { t: "Pocas, me cuesta mucho mantenerlo", p: 0 },
+    ],
+    tips: {
+      bad: "El mejor plan del mundo no sirve si no se cumple. Necesitas un plan que encaje en tu vida real y alguien que te pida cuentas.",
+      mid: "Las rachas te cuestan el progreso que ganas. Un plan más simple y un seguimiento semanal suelen resolverlo.",
+      good: "Tu constancia es sólida. Es la base de todo lo demás.",
+    },
+  },
+];
+
+/* ===================================================================== */
+
+const $ = (id) => document.getElementById(id);
+const answers = new Array(QUESTIONS.length).fill(null);
+let current = 0;
+let lead = null;
+
+function show(id) {
+  document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
+  $(id).classList.add("active");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function initBrand() {
+  $("brand").textContent = CONFIG.brand;
+  $("brand-2").textContent = CONFIG.brand;
+  if (CONFIG.logo) {
+    const img = document.createElement("img");
+    img.src = CONFIG.logo;
+    img.alt = CONFIG.brand;
+    $("logo").appendChild(img);
+  } else {
+    $("logo").textContent = CONFIG.logoInitials;
+  }
+  if (CONFIG.backgroundImage) $("bg").style.backgroundImage = `url("${CONFIG.backgroundImage}")`;
+  $("intro-title").innerHTML = CONFIG.introTitle;
+  $("intro-text").textContent = CONFIG.introText;
+  $("meta-q").textContent = QUESTIONS.length;
+  $("legal-text").textContent = CONFIG.legalText;
+  if (!CONFIG.askPhone) $("phone-field").style.display = "none";
+  $("cta-text").textContent = CONFIG.ctaText;
+  $("cta").textContent = CONFIG.ctaLabel;
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[current];
+  $("bar").style.width = `${(current / QUESTIONS.length) * 100}%`;
+  $("step").textContent = `${current + 1}/${QUESTIONS.length}`;
+  $("back").hidden = current === 0;
+  $("q-area").textContent = q.area;
+  $("q-title").textContent = q.q;
+  const box = $("q-opts");
+  box.innerHTML = "";
+  q.options.forEach((o, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "opt" + (answers[current] === i ? " sel" : "");
+    b.innerHTML = `<span class="k">${"ABCD"[i]}</span><span></span>`;
+    b.lastChild.textContent = o.t;
+    b.addEventListener("click", () => choose(i));
+    box.appendChild(b);
+  });
+  // Reinicia la animación de entrada
+  const s = $("s-quiz");
+  s.style.animation = "none";
+  void s.offsetWidth;
+  s.style.animation = "";
+}
+
+let locked = false;
+function choose(i) {
+  if (locked) return;
+  locked = true;
+  answers[current] = i;
+  [...$("q-opts").children].forEach((el, j) => el.classList.toggle("sel", j === i));
+  setTimeout(() => {
+    locked = false;
+    if (current < QUESTIONS.length - 1) {
+      current++;
+      renderQuestion();
+    } else {
+      $("bar").style.width = "100%";
+      if (CONFIG.captureLead) show("s-lead");
+      else runLoading();
+    }
+  }, 260);
+}
+
+function results() {
+  const areas = QUESTIONS.map((q, i) => {
+    const pts = q.options[answers[i]].p;
+    const pct = Math.round((pts / 3) * 100);
+    const level = pts >= 3 ? "good" : pts === 2 ? "mid" : "bad";
+    return { area: q.area, pts, pct, level, tip: q.tips[level], answer: q.options[answers[i]].t };
+  });
+  const total = Math.round((areas.reduce((a, b) => a + b.pts, 0) / (QUESTIONS.length * 3)) * 100);
+  return { areas, total };
+}
+
+function verdict(total) {
+  if (total >= 80) return { t: "Vas bien encaminado", c: "var(--good)", title: 'Tu base es <span class="hl">sólida</span>' };
+  if (total >= 55) return { t: "Progreso a medio gas", c: "var(--mid)", title: 'Estás dejando <span class="hl">resultados</span> en la mesa' };
+  return { t: "Fugas importantes", c: "var(--bad)", title: 'Por esto llevas meses <span class="hl">estancado</span>' };
+}
+
+const LEVEL = {
+  good: { label: "Bien", color: "var(--good)" },
+  mid: { label: "Mejorable", color: "var(--mid)" },
+  bad: { label: "Fuga", color: "var(--bad)" },
+};
+
+function sendLead(res) {
+  if (!CONFIG.webhookUrl || !lead) return;
+  const payload = {
+    ...lead,
+    source: "test-estancamiento",
+    score: res.total,
+    areas: Object.fromEntries(res.areas.map((a) => [a.area, a.pct])),
+    answers: Object.fromEntries(res.areas.map((a) => [a.area, a.answer])),
+    weakest: res.areas.filter((a) => a.level !== "good").map((a) => a.area).join(", "),
+    page: location.href,
+    submittedAt: new Date().toISOString(),
+  };
+  // text/plain evita el preflight CORS; la mayoría de webhooks (GHL, Zapier, Make) parsean el JSON igualmente.
+  fetch(CONFIG.webhookUrl, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "text/plain;charset=UTF-8" },
+    body: JSON.stringify(payload),
+    keepalive: true,
+  }).catch(() => {});
+}
+
+function runLoading() {
+  show("s-loading");
+  const steps = ["Revisando tu entrenamiento", "Analizando tu nutrición", "Evaluando descanso y constancia", "Detectando fugas de progreso"];
+  const box = $("loading-steps");
+  box.innerHTML = steps.map((s) => `<div>${s}</div>`).join("");
+  const res = results();
+  sendLead(res);
+  [...box.children].forEach((el, i) => setTimeout(() => el.classList.add("done"), 450 * (i + 1)));
+  setTimeout(() => renderResults(res), 450 * steps.length + 500);
+}
+
+function renderResults(res) {
+  const v = verdict(res.total);
+  const firstName = lead && lead.name ? escapeHtml(lead.name.split(" ")[0]) : "";
+  $("r-title").innerHTML = firstName ? `${firstName}, ${v.title.charAt(0).toLowerCase()}${v.title.slice(1)}` : v.title;
+  $("r-verdict").textContent = v.t;
+  $("r-verdict").style.color = v.c;
+  $("ring").style.stroke = v.c;
+
+  $("r-areas").innerHTML = res.areas.map((a) => `
+    <div class="area">
+      <div class="row"><span>${escapeHtml(a.area)}</span><span class="st" style="color:${LEVEL[a.level].color}">${LEVEL[a.level].label}</span></div>
+      <div class="track"><i data-w="${Math.max(a.pct, 6)}" style="background:${LEVEL[a.level].color}"></i></div>
+    </div>`).join("");
+
+  const sorted = [...res.areas].sort((a, b) => a.pts - b.pts);
+  const leaks = sorted.filter((a) => a.level !== "good").slice(0, 3);
+  const list = leaks.length ? leaks : sorted.slice(0, 1);
+  $("r-leaks").innerHTML = list.map((a) => `
+    <div class="leak ${a.level === "bad" ? "" : a.level}">
+      <b>${escapeHtml(a.area)}</b><span>${escapeHtml(a.tip)}</span>
+    </div>`).join("");
+
+  $("cta").href = CONFIG.ctaUrl;
+  show("s-result");
+
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.querySelectorAll("#r-areas .track > i").forEach((el) => (el.style.width = el.dataset.w + "%"));
+    $("ring").style.strokeDashoffset = 232.5 * (1 - res.total / 100);
+    countUp($("r-score"), res.total);
+  }));
+}
+
+function countUp(el, to) {
+  const start = performance.now();
+  const dur = 900;
+  (function tick(now) {
+    const k = Math.min(1, (now - start) / dur);
+    el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3)));
+    if (k < 1) requestAnimationFrame(tick);
+  })(start);
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+/* Eventos */
+$("start").addEventListener("click", () => { current = 0; renderQuestion(); show("s-quiz"); });
+$("back").addEventListener("click", () => { if (current > 0) { current--; renderQuestion(); } });
+$("back-lead").addEventListener("click", () => { current = QUESTIONS.length - 1; renderQuestion(); show("s-quiz"); });
+$("restart").addEventListener("click", () => { answers.fill(null); current = 0; show("s-intro"); });
+
+document.addEventListener("keydown", (e) => {
+  if (!$("s-quiz").classList.contains("active")) return;
+  const i = "abcd".indexOf(e.key.toLowerCase());
+  const n = parseInt(e.key, 10) - 1;
+  const idx = i >= 0 ? i : n;
+  if (idx >= 0 && idx < QUESTIONS[current].options.length) choose(idx);
+});
+
+$("lead-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const name = $("f-name").value.trim();
+  const email = $("f-email").value.trim();
+  const phone = $("f-phone").value.trim();
+  if (!name) return ($("err").textContent = "Pon tu nombre.");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return ($("err").textContent = "Revisa el email.");
+  if (!$("f-ok").checked) return ($("err").textContent = "Tienes que aceptar para recibir el diagnóstico.");
+  $("err").textContent = "";
+  lead = { name, email, phone };
+  runLoading();
+});
+
+initBrand();
+</script>
+</body>
+</html>

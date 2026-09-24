@@ -173,3 +173,19 @@ data/
 
 Next.js (App Router) + TypeScript + Tailwind CSS + SQLite (`node:sqlite`),
 sin dependencias externas de base de datos ni servicios en la nube.
+
+## Test de captación (`/test/index.html`)
+
+Página independiente tipo "quiz" (6 preguntas, diagnóstico por áreas:
+progresión, intensidad, calorías, proteína, descanso y constancia) para
+captar leads desde anuncios o la bio. Con `npm run dev` se abre en
+`http://localhost:3000/test/index.html`, pero es un único fichero HTML sin
+dependencias: puedes subirlo tal cual a cualquier hosting estático
+(Netlify, Vercel, GitHub Pages...) o incrustarlo en tu web.
+
+Todo se personaliza en el bloque `CONFIG` y `QUESTIONS` al principio del
+`<script>`: marca, logo, foto de fondo, textos, preguntas y enlace del botón
+final (WhatsApp, Calendly...). Si rellenas `webhookUrl` (por ejemplo el
+*Inbound Webhook* de un workflow de GoHighLevel), cada lead se envía con su
+nombre, email, teléfono, puntuación y respuestas; después lo traes al CRM con
+**Sincronizar con GoHighLevel**.
