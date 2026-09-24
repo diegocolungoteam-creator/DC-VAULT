@@ -10,15 +10,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg: #070d18;
-    --card: #0f1b2d;
-    --card-2: #13223a;
-    --line: rgba(120, 170, 230, 0.14);
-    --text: #eef3fa;
-    --muted: #9aabc2;
-    --accent: #4a9be0;
-    --accent-2: #2f7fc9;
-    --accent-glow: rgba(74, 155, 224, 0.45);
+    --bg: #0b0714;
+    --card: #150d26;
+    --card-2: #1d1236;
+    --line: rgba(180, 130, 255, 0.16);
+    --text: #f4effc;
+    --muted: #a99cc4;
+    --accent: #9d4dff;
+    --accent-2: #6a1fd1;
+    --accent-glow: rgba(157, 77, 255, 0.5);
     --good: #3ecf8e;
     --mid: #f2b84b;
     --bad: #f26b5b;
@@ -47,8 +47,8 @@
   .bg::after {
     content: ""; position: absolute; inset: 0;
     background:
-      radial-gradient(ellipse 60% 45% at 30% 0%, rgba(74,155,224,0.28), transparent 70%),
-      linear-gradient(180deg, rgba(7,13,24,0.35), rgba(7,13,24,0.85));
+      radial-gradient(ellipse 60% 45% at 30% 0%, rgba(157,77,255,0.28), transparent 70%),
+      linear-gradient(180deg, rgba(11,7,20,0.35), rgba(11,7,20,0.85));
   }
 
   .card {
@@ -69,14 +69,20 @@
   .logo {
     width: 116px; height: 116px; margin: 0 auto 18px;
     border-radius: 50%;
-    background: radial-gradient(circle at 50% 40%, #16304f, #0a1626 70%);
+    background: radial-gradient(circle at 50% 40%, #2a1650, #120a22 70%);
     border: 3px solid var(--accent);
-    box-shadow: 0 0 0 8px rgba(10,22,38,0.9), 0 0 38px var(--accent-glow);
+    box-shadow: 0 0 0 8px rgba(18,10,34,0.9), 0 0 38px var(--accent-glow);
     display: flex; align-items: center; justify-content: center;
     overflow: hidden;
     font-family: "Bebas Neue", sans-serif; font-size: 44px; letter-spacing: 1px; color: var(--text);
   }
   .logo img { width: 100%; height: 100%; object-fit: cover; }
+  .logo.wide {
+    width: 190px; height: auto; border: 0; border-radius: 0; background: none; overflow: visible;
+    box-shadow: none; margin-bottom: 26px;
+  }
+  .logo.wide img { height: auto; object-fit: contain; filter: drop-shadow(0 0 22px var(--accent-glow)); }
+  .brand-logo { display: block; width: 96px; margin: 0 auto 16px; filter: drop-shadow(0 0 14px var(--accent-glow)); }
   .brand {
     text-align: center;
     font-family: "Bebas Neue", sans-serif;
@@ -92,23 +98,23 @@
   h1 { font-size: 44px; margin-bottom: 16px; }
   h2 { font-size: 34px; margin-bottom: 18px; }
   .hl { color: var(--accent); }
-  p.lead { color: #c9d4e3; font-size: 16px; line-height: 1.6; margin-bottom: 26px; }
+  p.lead { color: #d6cce8; font-size: 16px; line-height: 1.6; margin-bottom: 26px; }
 
   .btn {
     display: flex; align-items: center; justify-content: center; gap: 8px;
     width: 100%;
-    background: var(--accent);
-    color: #0b1626;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
     border: 0; border-radius: 14px;
     padding: 18px 20px;
     font-family: inherit; font-size: 15px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
     cursor: pointer;
     transition: transform .12s ease, background .2s ease, box-shadow .2s ease;
-    box-shadow: 0 10px 30px rgba(74,155,224,0.25);
+    box-shadow: 0 10px 30px rgba(157,77,255,0.25);
     text-decoration: none;
     text-align: center;
   }
-  .btn:hover { background: #5aa8ea; }
+  .btn:hover { background: linear-gradient(135deg, #b06bff, #7a2fe0); }
   .btn:active { transform: scale(0.98); }
   .btn:disabled { opacity: .45; cursor: not-allowed; }
 
@@ -128,7 +134,7 @@
   .step { font-size: 12px; color: var(--muted); font-weight: 600; min-width: 34px; text-align: right; }
   .area-tag {
     display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
-    color: var(--accent); background: rgba(74,155,224,0.12); border-radius: 99px; padding: 5px 10px; margin-bottom: 12px;
+    color: var(--accent); background: rgba(157,77,255,0.12); border-radius: 99px; padding: 5px 10px; margin-bottom: 12px;
   }
 
   .options { display: flex; flex-direction: column; gap: 10px; }
@@ -144,15 +150,15 @@
     display: flex; gap: 12px; align-items: center;
     transition: border-color .15s ease, background .15s ease, transform .1s ease;
   }
-  .opt:hover { border-color: rgba(74,155,224,0.6); background: rgba(74,155,224,0.06); }
+  .opt:hover { border-color: rgba(157,77,255,0.6); background: rgba(157,77,255,0.06); }
   .opt:active { transform: scale(0.99); }
-  .opt.sel { border-color: var(--accent); background: rgba(74,155,224,0.14); }
+  .opt.sel { border-color: var(--accent); background: rgba(157,77,255,0.14); }
   .opt .k {
     flex-shrink: 0; width: 26px; height: 26px; border-radius: 8px;
     border: 1px solid var(--line); color: var(--muted);
     display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;
   }
-  .opt.sel .k { background: var(--accent); color: #0b1626; border-color: var(--accent); }
+  .opt.sel .k { background: var(--accent); color: #fff; border-color: var(--accent); }
 
   /* Formulario */
   .field { margin-bottom: 12px; }
@@ -161,7 +167,7 @@
     width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--line); color: var(--text);
     border-radius: 12px; padding: 14px 14px; font-family: inherit; font-size: 16px;
   }
-  .field input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,155,224,0.2); }
+  .field input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(157,77,255,0.2); }
   .legal { font-size: 11.5px; color: var(--muted); line-height: 1.5; margin: 6px 0 16px; }
   .legal input { vertical-align: -2px; margin-right: 6px; accent-color: var(--accent); }
   .err { color: var(--bad); font-size: 13px; margin-bottom: 10px; min-height: 18px; }
@@ -170,7 +176,7 @@
   .loading { text-align: center; padding: 30px 0 10px; }
   .spinner {
     width: 56px; height: 56px; margin: 0 auto 22px; border-radius: 50%;
-    border: 4px solid rgba(74,155,224,0.18); border-top-color: var(--accent);
+    border: 4px solid rgba(157,77,255,0.18); border-top-color: var(--accent);
     animation: spin .8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -208,9 +214,9 @@
   .leak.mid { border-color: var(--mid); background: rgba(242,184,75,0.06); }
   .leak.good { border-color: var(--good); background: rgba(62,207,142,0.06); }
   .leak b { display: block; font-size: 14px; margin-bottom: 4px; }
-  .leak span { font-size: 14px; color: #c9d4e3; line-height: 1.55; }
+  .leak span { font-size: 14px; color: #d6cce8; line-height: 1.55; }
   .cta-box { margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--line); }
-  .cta-box p { color: #c9d4e3; font-size: 15px; line-height: 1.55; margin-bottom: 16px; }
+  .cta-box p { color: #d6cce8; font-size: 15px; line-height: 1.55; margin-bottom: 16px; }
   .restart { display: block; margin: 14px auto 0; background: none; border: 0; color: var(--muted); font: inherit; font-size: 13px; cursor: pointer; text-decoration: underline; }
 
   @media (max-width: 380px) {
@@ -311,9 +317,9 @@
    CONFIGURACIÓN — cambia aquí marca, textos, enlaces y preguntas.
    ===================================================================== */
 const CONFIG = {
-  brand: "DC TEAM",
+  brand: "DC COACHING",
   // Logo: ruta/URL de una imagen redonda (ej. "/logo.png"). Si queda vacío se muestran las iniciales.
-  logo: "",
+  logo: "logo.png",
   logoInitials: "DC",
   // Foto de fondo opcional detrás de la tarjeta (ej. "/fondo.jpg").
   backgroundImage: "",
@@ -452,6 +458,12 @@ function initBrand() {
     img.src = CONFIG.logo;
     img.alt = CONFIG.brand;
     $("logo").appendChild(img);
+    // El logo ya lleva el nombre: se muestra en grande y sin el texto de marca debajo.
+    $("logo").classList.add("wide");
+    $("brand").style.display = "none";
+    const small = img.cloneNode();
+    small.className = "brand-logo";
+    $("brand-2").replaceWith(small);
   } else {
     $("logo").textContent = CONFIG.logoInitials;
   }
