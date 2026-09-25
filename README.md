@@ -183,7 +183,9 @@ captar leads desde anuncios o la bio. Con `npm run dev` se abre en
 autónoma (HTML + logo) y se publica tal cual en cualquier hosting estático.
 
 Todo se personaliza en los bloques `CONFIG` y `QUESTIONS` al principio del
-`<script>`: marca, logo, textos, preguntas y enlace del botón final.
+`<script>`: marca, logo, textos, preguntas y el WhatsApp del botón final
+(`whatsapp`), que abre el chat con un resumen del resultado ya escrito:
+nombre, puntuación, estado de cada área y dónde se le escapa el progreso.
 
 ### Publicarlo en Netlify y recoger los leads
 

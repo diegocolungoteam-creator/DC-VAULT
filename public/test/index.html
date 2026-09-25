@@ -356,9 +356,12 @@ const CONFIG = {
   webhookUrl: "",
 
   // Botón final
-  ctaText: "Esto tiene solución, y no pasa por entrenar más horas. Si quieres que revise tu caso y te diga qué cambiar primero, aplica a una llamada gratuita conmigo.",
-  ctaLabel: "Quiero salir del estancamiento →",
-  ctaUrl: "https://wa.me/34600000000?text=Hola%2C%20acabo%20de%20hacer%20el%20test%20de%20estancamiento",
+  ctaText: "Esto tiene solución, y no pasa por entrenar más horas. Si quieres que revise tu caso y te diga qué cambiar primero, escríbeme por WhatsApp: tu resultado ya va en el mensaje, solo tienes que darle a enviar.",
+  ctaLabel: "Enviar mi resultado por WhatsApp →",
+  // WhatsApp (solo dígitos, con prefijo de país). El botón abre el chat con un resumen del resultado ya escrito.
+  whatsapp: "34627745747",
+  // Si prefieres otro destino (Calendly, formulario de aplicación...), ponlo aquí y se usará en lugar de WhatsApp.
+  ctaUrl: "",
 };
 
 /* Cada pregunta evalúa un área. Puntos: 3 = bien, 0 = fuga de progreso.
@@ -612,6 +615,23 @@ function slug(s) {
   return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "_");
 }
 
+function whatsappUrl(res) {
+  const first = lead && lead.name ? ` Soy ${lead.name.split(" ")[0]}.` : "";
+  const weak = res.areas.filter((a) => a.level !== "good").sort((a, b) => a.pts - b.pts);
+  const lines = [
+    `Hola!${first} Acabo de hacer el test de ${CONFIG.brand}.`,
+    "",
+    `Mi puntuación: ${res.total}/100 (${verdict(res.total).t})`,
+    "",
+    ...res.areas.map((a) => `${a.level === "good" ? "✅" : a.level === "mid" ? "⚠️" : "❌"} ${a.area}: ${LEVEL[a.level].label}`),
+    "",
+    weak.length
+      ? `Donde más se me escapa el progreso: ${weak.slice(0, 2).map((a) => a.area.toLowerCase()).join(" y ")}. Quiero que revises mi caso.`
+      : "Quiero que revises mi caso para seguir avanzando.",
+  ];
+  return `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(lines.join("\n"))}`;
+}
+
 function runLoading() {
   show("s-loading");
   const steps = ["Revisando tu entrenamiento", "Analizando tu nutrición", "Evaluando descanso y constancia", "Detectando fugas de progreso"];
@@ -645,7 +665,7 @@ function renderResults(res) {
       <b>${escapeHtml(a.area)}</b><span>${escapeHtml(a.tip)}</span>
     </div>`).join("");
 
-  $("cta").href = CONFIG.ctaUrl;
+  $("cta").href = CONFIG.ctaUrl || whatsappUrl(res);
   show("s-result");
 
   requestAnimationFrame(() => requestAnimationFrame(() => {
