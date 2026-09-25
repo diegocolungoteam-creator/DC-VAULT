@@ -179,13 +179,30 @@ sin dependencias externas de base de datos ni servicios en la nube.
 Página independiente tipo "quiz" (6 preguntas, diagnóstico por áreas:
 progresión, intensidad, calorías, proteína, descanso y constancia) para
 captar leads desde anuncios o la bio. Con `npm run dev` se abre en
-`http://localhost:3000/test/index.html`, pero es un único fichero HTML sin
-dependencias: puedes subirlo tal cual a cualquier hosting estático
-(Netlify, Vercel, GitHub Pages...) o incrustarlo en tu web.
+`http://localhost:3000/test/index.html`, pero la carpeta `public/test` es
+autónoma (HTML + logo) y se publica tal cual en cualquier hosting estático.
 
-Todo se personaliza en el bloque `CONFIG` y `QUESTIONS` al principio del
-`<script>`: marca, logo, foto de fondo, textos, preguntas y enlace del botón
-final (WhatsApp, Calendly...). Si rellenas `webhookUrl` (por ejemplo el
-*Inbound Webhook* de un workflow de GoHighLevel), cada lead se envía con su
-nombre, email, teléfono, puntuación y respuestas; después lo traes al CRM con
-**Sincronizar con GoHighLevel**.
+Todo se personaliza en los bloques `CONFIG` y `QUESTIONS` al principio del
+`<script>`: marca, logo, textos, preguntas y enlace del botón final.
+
+### Publicarlo en Netlify y recoger los leads
+
+1. Entra en <https://app.netlify.com/drop> y arrastra la carpeta
+   `public/test` entera. Te da una URL pública al momento (luego puedes
+   cambiarle el nombre o conectar tu dominio en *Domain management*).
+2. En el sitio: **Forms → Enable form detection** y vuelve a arrastrar la
+   carpeta (Netlify solo detecta el formulario al publicar).
+3. Cada persona que termina el test aparece en **Forms → test-primex** con
+   nombre, email, WhatsApp, puntuación, áreas flojas y cada respuesta.
+   Puedes exportarlo a CSV y activar un aviso por email en
+   *Forms → Form notifications*.
+
+El plan gratuito de Netlify incluye 100 envíos de formulario al mes.
+
+### Enviar los leads a GoHighLevel (opcional)
+
+Crea en GHL un workflow con el disparador **Inbound Webhook**, copia su URL
+en `webhookUrl` y vuelve a publicar. Cada lead llega con los mismos campos
+(form-urlencoded) para mapearlos al contacto y lanzar tus automatizaciones;
+después lo traes al CRM con **Sincronizar con GoHighLevel**. Netlify Forms y
+el webhook funcionan a la vez.

@@ -237,6 +237,12 @@
 <body>
 <div class="bg" id="bg"></div>
 
+<!-- Formulario oculto: Netlify lo detecta al publicar para crear el formulario "test-primex".
+     Sus campos deben coincidir con los que envía sendLead(). -->
+<form name="test-primex" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input name="bot-field" /><input name="name" /><input name="email" /><input name="phone" /><input name="score" /><input name="weakest" /><input name="area_progresion" /><input name="area_intensidad" /><input name="area_calorias" /><input name="area_proteina" /><input name="area_descanso" /><input name="area_constancia" /><input name="resp_progresion" /><input name="resp_intensidad" /><input name="resp_calorias" /><input name="resp_proteina" /><input name="resp_descanso" /><input name="resp_constancia" /><input name="source" /><input name="page" /><input name="submittedAt" />
+</form>
+
 <main class="card">
   <!-- INTRO -->
   <section class="screen active" id="s-intro">
@@ -340,8 +346,13 @@ const CONFIG = {
   askPhone: true,
   legalText: "Acepto recibir mi diagnóstico y comunicaciones sobre el programa. Puedo darme de baja cuando quiera.",
 
+  // Netlify Forms: si publicas en Netlify, cada lead queda guardado en Site → Forms → "test-primex"
+  // (y puedes activar aviso por email). Si cambias formName, cámbialo también en el <form hidden> del HTML.
+  netlifyForms: true,
+  formName: "test-primex",
+
   // Webhook donde se envía el lead (ej. Inbound Webhook de un workflow de GoHighLevel,
-  // Zapier, Make...). Se envía un POST JSON con nombre, email, teléfono, respuestas y puntuaciones.
+  // Zapier, Make...). Se envía un POST (form-urlencoded) con nombre, email, teléfono, respuestas y puntuaciones.
   webhookUrl: "",
 
   // Botón final
@@ -560,25 +571,45 @@ const LEVEL = {
 };
 
 function sendLead(res) {
-  if (!CONFIG.webhookUrl || !lead) return;
-  const payload = {
-    ...lead,
-    source: "test-estancamiento",
+  if (!lead) return;
+  // Campos planos (una columna por dato) para que se lean bien en Netlify, GHL, Zapier o Make.
+  const fields = {
+    name: lead.name,
+    email: lead.email,
+    phone: lead.phone,
     score: res.total,
-    areas: Object.fromEntries(res.areas.map((a) => [a.area, a.pct])),
-    answers: Object.fromEntries(res.areas.map((a) => [a.area, a.answer])),
     weakest: res.areas.filter((a) => a.level !== "good").map((a) => a.area).join(", "),
+    ...Object.fromEntries(res.areas.map((a) => [`area_${slug(a.area)}`, a.pct])),
+    ...Object.fromEntries(res.areas.map((a) => [`resp_${slug(a.area)}`, a.answer])),
+    source: CONFIG.formName,
     page: location.href,
     submittedAt: new Date().toISOString(),
   };
-  // text/plain evita el preflight CORS; la mayoría de webhooks (GHL, Zapier, Make) parsean el JSON igualmente.
-  fetch(CONFIG.webhookUrl, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "text/plain;charset=UTF-8" },
-    body: JSON.stringify(payload),
-    keepalive: true,
-  }).catch(() => {});
+
+  // 1) Netlify Forms: guarda el lead en el panel de Netlify (solo funciona publicado en Netlify).
+  if (CONFIG.netlifyForms && location.protocol.startsWith("http")) {
+    fetch(location.pathname, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ "form-name": CONFIG.formName, "bot-field": "", ...fields }).toString(),
+      keepalive: true,
+    }).catch(() => {});
+  }
+
+  // 2) Webhook opcional (GHL, Zapier, Make...). Form-urlencoded no necesita preflight CORS.
+  if (CONFIG.webhookUrl) {
+    fetch(CONFIG.webhookUrl, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams(fields).toString(),
+      keepalive: true,
+    }).catch(() => {});
+  }
+}
+
+function slug(s) {
+  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "_");
 }
 
 function runLoading() {
