@@ -7,7 +7,7 @@ import {REELS} from './reels/registry';
 
 export const Root: React.FC = () => (
   <>
-    <Composition id="brand" component={BrandSheet} durationInFrames={10 * FPS} fps={FPS} width={W} height={H} />
+    <Composition id="brand" component={BrandSheet} durationInFrames={12 * FPS} fps={FPS} width={W} height={H} />
     {Object.entries(REELS).map(([id, props]) => {
       const d = Math.ceil(props.durationSec * FPS);
       return (

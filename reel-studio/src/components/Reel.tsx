@@ -1,5 +1,5 @@
 import React from 'react';
-import {AbsoluteFill, Audio, Sequence, staticFile} from 'remotion';
+import {AbsoluteFill, Audio, Img, Sequence, interpolate, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
 import {brand, sec} from '../brand';
 import {Fonts} from '../fonts';
 import type {ReelProps} from '../types';
@@ -39,9 +39,7 @@ export const Reel: React.FC<ReelProps> = (p) => {
         {/* Captions run first word to last. Never muted (guide §9). */}
         <Captions words={p.words} emphasis={p.emphasis} y={p.captionY} accentText={accentText} />
 
-        {brand.logo ? (
-          <img src={staticFile(brand.logo)} style={{position: 'absolute', right: 70, top: 440, height: 64, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.5))'}} />
-        ) : null}
+        {brand.logo ? <Logo src={brand.logo} hideDuring={topWins} /> : null}
 
         {p.sfx.map((s, i) => (
           <Sequence key={i} from={sec(s.at)} name={`sfx ${s.note ?? s.src}`} layout="none">
@@ -53,5 +51,26 @@ export const Reel: React.FC<ReelProps> = (p) => {
         {p.igOverlay ? <IgSafeOverlay safe={p.safe} /> : null}
       </AbsoluteFill>
     </Fonts>
+  );
+};
+
+/**
+ * The mark sits in the top-right corner of the readable box and steps aside
+ * while a top card owns that band. No chip behind it — a drop-shadow is
+ * enough (guide §6).
+ */
+const Logo: React.FC<{src: string; hideDuring: [number, number][]}> = ({src, hideDuring}) => {
+  const frame = useCurrentFrame();
+  const {fps} = useVideoConfig();
+  const t = frame / fps;
+  const hidden = Math.max(
+    0,
+    ...hideDuring.map(([s, e]) => interpolate(t, [s - 0.2, s, e, e + 0.2], [0, 1, 1, 0], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'})),
+  );
+  return (
+    <Img
+      src={staticFile(src)}
+      style={{position: 'absolute', right: 72, top: 444, height: 86, opacity: 0.92 * (1 - hidden), filter: 'drop-shadow(0 2px 10px rgba(0,0,0,0.6))'}}
+    />
   );
 };

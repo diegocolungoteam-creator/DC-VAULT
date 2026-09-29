@@ -41,19 +41,28 @@ npm run studio          # abre el editor en el navegador → elige "ejemplo"
 
 ---
 
-## 2. Tu marca (una vez)
+## 2. Tu marca — PRIME-X (ya configurada)
 
-Edita **`src/brand.ts`**: `accent` (relleno de bloques), `onAccent` (texto
-encima del relleno — negro si tu color es claro), `accentText` (palabras de
-color sobre el vídeo — más claro que `accent`), y `logo` (pon el PNG en
-`public/brand/`). Para ver todas las tarjetas con tu marca:
+`src/brand.ts` ya tiene tu marca, con los colores sacados de los archivos del logo:
+
+| token | valor | uso |
+|---|---|---|
+| `accent` | `#8B2FD6` | bloques de relleno (texto blanco encima, contraste 6:1) |
+| `accentText` | `#B06CF0` | palabras de color sobre el vídeo (se lee sobre fondos claros) |
+| `surface` / `black` | `#0C0819` | el fondo del logo: capturas y cierre |
+| fuente | Montserrat 500–900 | se parece a la de tu logo, con licencia libre para uso comercial |
+
+Logos en `public/brand/`: `logo-mark.png` (hexágono con la hélice de ADN, arriba a
+la derecha en cada reel, se aparta cuando hay una tarjeta arriba),
+`logo-vertical.png` y `logo-horizontal.png` (Academy). Están recortados de
+JPG; si tienes el PNG/SVG original, reemplázalos con el mismo nombre.
+
+Para ver todas las tarjetas y el cierre con tu marca:
 
 ```bash
 npx remotion still brand out/brand.png --frame=130
+npm run studio   # → composición "brand"
 ```
-
-Otra tipografía: pon los `.woff2` en `public/fonts/` y cámbialos en
-`src/fonts.tsx`. Nunca cargues fuentes de un CDN.
 
 ---
 
@@ -125,7 +134,7 @@ reel-studio/
 
 ## Pendiente de ti
 
-- Colores, logo y tipografía reales en `src/brand.ts`.
+- Logo original en PNG/SVG para sustituir los recortados de JPG.
 - Tu pack de sonidos: normaliza efectos (`loudnorm=I=-20:TP=-3`) a `public/sfx/`,
   una pista de fondo a `public/music/`, grano H.264 a `public/fx/grain.mp4` (guía §10–11, §15).
 - Medir la UI de Instagram con una captura tuya si cambia (`src/ig-safe.ts`).

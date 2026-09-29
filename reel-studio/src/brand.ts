@@ -3,26 +3,33 @@ export const W = 1080;
 export const H = 1920;
 
 /**
- * House brand tokens. Every reel reads from here — change a colour once and
- * every reel re-renders correctly.
+ * PRIME-X (High-Performance / Academy) brand tokens. Every reel reads from
+ * here — change a colour once and every reel re-renders correctly.
  *
- * TODO(marca): these are placeholders. Replace with your real colours,
- * sampled from the footage if you can (guide §6).
+ * Colours sampled from the logo files (public/brand/source-*.jpg), not a mood board.
+ * Contrast checked, not guessed (guide §6):
+ *   white on `accent`            6.0 : 1
+ *   `accentText` vs white frame  3.4 : 1   (and 6.3 : 1 on black)
  */
 export const brand = {
-  black: '#0B0B0C',
+  name: 'PRIME-X',
+  black: '#0C0819',
   white: '#FFFFFF',
-  /** SOLID FILLS ONLY — slabs, chips, bars. `onAccent` text sits on top. */
-  accent: '#2B2EFF',
-  /** Text colour on top of `accent`. Use black if the accent is light (<3:1 with white). */
+  /** SOLID FILLS ONLY — slabs, chips, bars. `onAccent` text sits on top. Logo mid-tone purple. */
+  accent: '#8B2FD6',
+  /** Text colour on top of `accent`. */
   onAccent: '#FFFFFF',
-  /** Coloured TEXT laid over video. Must be lighter than `accent` (>=3:1 on bright frames). */
-  accentText: '#8F91FF',
-  /** Dark background for full-frame screenshots and the no-footage placeholder. */
-  surface: '#15161A',
-  font: 'Inter, -apple-system, sans-serif',
-  /** Logo in public/brand/. Set to null to hide it. */
-  logo: null as string | null,
+  /** Coloured TEXT laid over video. Lighter tint of the accent so it reads on bright frames. */
+  accentText: '#B06CF0',
+  /** Dark background for full-frame screenshots and the no-footage placeholder — the logo's backdrop. */
+  surface: '#0C0819',
+  /** Geometric sans close to the PRIME-X wordmark. Montserrat is OFL — safe for commercial reels. */
+  font: 'Montserrat, Inter, -apple-system, sans-serif',
+  /** Hexagon + DNA mark, transparent PNG. Shown top-right when no top card is on screen. */
+  logo: 'brand/logo-mark.png' as string | null,
+  /** Full lockups for end cards / brand stills. */
+  logoHorizontal: 'brand/logo-horizontal.png',
+  logoVertical: 'brand/logo-vertical.png',
 } as const;
 
 export const sec = (s: number) => Math.round(s * FPS);
