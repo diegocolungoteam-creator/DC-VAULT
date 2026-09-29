@@ -52,8 +52,8 @@ npm run studio          # abre el editor en el navegador → elige "ejemplo"
 | `surface` / `black` | `#0C0819` | el fondo del logo: capturas y cierre |
 | fuente | Montserrat 500–900 | se parece a la de tu logo, con licencia libre para uso comercial |
 
-Logos en `public/brand/`: `logo-mark.png` (hexágono con la hélice de ADN, arriba a
-la derecha en cada reel, se aparta cuando hay una tarjeta arriba),
+**Los reels van sin logo** (`logo: null` en `src/brand.ts`). Los archivos
+siguen en `public/brand/` por si algún día hacen falta: `logo-mark.png`,
 `logo-vertical.png` y `logo-horizontal.png` (Academy). Están recortados de
 JPG; si tienes el PNG/SVG original, reemplázalos con el mismo nombre.
 

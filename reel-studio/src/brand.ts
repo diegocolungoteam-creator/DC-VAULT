@@ -25,8 +25,11 @@ export const brand = {
   surface: '#0C0819',
   /** Geometric sans close to the PRIME-X wordmark. Montserrat is OFL — safe for commercial reels. */
   font: 'Montserrat, Inter, -apple-system, sans-serif',
-  /** Hexagon + DNA mark, transparent PNG. Shown top-right when no top card is on screen. */
-  logo: 'brand/logo-mark.png' as string | null,
+  /**
+   * NO LOGO ON REELS — the client's call (Sep 2026). Keep this null; don't
+   * "fix" it back. The mark stays in public/brand/logo-mark.png if ever needed.
+   */
+  logo: null as string | null,
   /** Full lockups for end cards / brand stills. */
   logoHorizontal: 'brand/logo-horizontal.png',
   logoVertical: 'brand/logo-vertical.png',
