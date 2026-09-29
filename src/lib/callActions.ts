@@ -63,7 +63,9 @@ export async function syncFathomCallsAction(): Promise<CallSyncResult> {
     const prospect =
       (m.calendar_invitees ?? []).find((i) => i.is_external) ??
       (m.calendar_invitees ?? []).find((i) => i.email && normalizeMatchKey(i.email) !== closerEmail);
-    const prospectName = prospect?.name?.trim() || null;
+    // Si Fathom no conoce el nombre del invitado, pone su email como nombre: mejor mostrar el título.
+    const rawName = prospect?.name?.trim();
+    const prospectName = rawName && !rawName.includes("@") ? rawName : null;
     const prospectEmail = prospect?.email?.trim() || null;
     const clientId =
       (prospectEmail ? matchClient(prospectEmail) : undefined) ??

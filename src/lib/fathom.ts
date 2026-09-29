@@ -58,10 +58,12 @@ export async function fetchFathomMeetings(createdAfter?: string): Promise<Fathom
       cache: "no-store",
     });
 
-    if (res.status === 429 && rateLimitRetries < 5) {
-      // Fathom limita a ~60 peticiones/minuto: espera y reintenta la misma página.
+    if (res.status === 429 && rateLimitRetries < 30) {
+      // Fathom limita las peticiones (p. ej. 10 seguidas) y dice cuánto esperar en Retry-After.
       rateLimitRetries++;
-      await new Promise((r) => setTimeout(r, 5000));
+      const retryAfter = Number(res.headers.get("retry-after"));
+      const waitSeconds = Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : 10;
+      await new Promise((r) => setTimeout(r, (waitSeconds + 1) * 1000));
       page--;
       continue;
     }
