@@ -93,3 +93,40 @@ export const LEAD_SOURCES = [
   "Referidos",
   "Otro",
 ] as const;
+
+export type CallOutcome = "pendiente" | "cerrada" | "seguimiento" | "perdida" | "no_venta";
+
+export const CALL_OUTCOMES: { value: CallOutcome; label: string }[] = [
+  { value: "cerrada", label: "Cerrada" },
+  { value: "seguimiento", label: "Seguimiento" },
+  { value: "perdida", label: "Perdida" },
+  { value: "no_venta", label: "No es venta" },
+  { value: "pendiente", label: "Sin analizar" },
+];
+
+export interface SalesCall {
+  id: number;
+  fathom_recording_id: string;
+  title: string;
+  date: string;
+  started_at: string | null;
+  duration_min: number | null;
+  url: string | null;
+  closer_name: string | null;
+  closer_email: string | null;
+  prospect_name: string | null;
+  prospect_email: string | null;
+  client_id: number | null;
+  summary: string | null;
+  transcript: string | null;
+  closer_talk_pct: number | null;
+  closer_questions: number | null;
+  outcome: CallOutcome;
+  outcome_source: "auto" | "claude" | "manual";
+  amount: number | null;
+  score: number | null;
+  analysis: string | null;
+  analyzed_at: string | null;
+  notes: string | null;
+  created_at: string;
+}

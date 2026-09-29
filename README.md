@@ -25,6 +25,11 @@ de tu Mac y no necesitas conexión a internet para usarla una vez instalada.
   TikTok, orgánico...), leads, llamadas agendadas y cierres, con coste por
   lead/llamada/cierre y coste por cliente según de dónde viene. Los clientes
   llevan un campo "fuente" para poder atribuirlos a un canal.
+- **Llamadas (Fathom + Claude)**: trae tus llamadas de venta grabadas con
+  Fathom y te da un panel tipo "closer": tasa de cierre, facturación, ticket
+  medio, duración, cuánto hablas tú frente al prospecto, objeciones más
+  frecuentes y nota por fase de la llamada (conexión, descubrimiento, dolor,
+  presentación, cierre), con análisis y mejoras concretas por llamada.
 - **Importar**: sube tus hojas de Google Sheets exportadas como CSV (clientes,
   pagos, gastos, revisiones) y mapea las columnas a los campos del CRM.
 - **Resumen (dashboard)**: clientes activos, renovaciones próximas o vencidas,
@@ -153,6 +158,42 @@ para ese cliente en esa fecha, la actualiza en vez de duplicarla.
 El sistema busca automáticamente una columna de nombre (`Nombre`, `Name` o
 `Cliente`) y una de fecha de check-in (`Last_Checkin_At`, `checkin`,
 `fecha_checkin` o `ultimo_checkin`) en la primera fila de la hoja.
+
+## Analizar llamadas de venta (Fathom + Claude)
+
+La sección **Llamadas** (`/llamadas`) funciona en dos pasos:
+
+1. **Sincronizar con Fathom**: trae tus grabaciones (resumen y transcripción)
+   a la base de datos local. Es incremental y seguro de repetir: solo pide a
+   Fathom lo grabado desde la última llamada sincronizada. Ya con esto ves
+   duración, % que hablas tú y nº de preguntas que haces.
+2. **Analizar con Claude**: lee cada transcripción y detecta si fue venta,
+   el resultado (cerrada / seguimiento / perdida), importe y plan, las
+   objeciones (y si las resolviste) y una nota por fase con qué mejorar.
+   Analiza 5 llamadas por clic; pulsa otra vez si quedan pendientes. Cada
+   llamada solo se analiza una vez (puedes forzarlo con "Volver a analizar"
+   en su ficha).
+
+Si Claude se equivoca en el resultado o el importe, cámbialo en la ficha de
+la llamada: lo que fijes a mano no se sobrescribe al volver a analizar.
+
+Para configurarlo:
+
+1. En Fathom: **Settings → API Access → Generate API Key** y copia la clave.
+2. En [console.anthropic.com](https://console.anthropic.com/): crea una API
+   key de Claude (Settings → API Keys). Analizar una llamada de ~1 hora
+   cuesta unos 10-15 céntimos.
+3. Añade a tu `.env.local`:
+
+   ```
+   FATHOM_API_KEY=xxxxxxxx
+   ANTHROPIC_API_KEY=sk-ant-xxxxxxxx
+   ```
+
+4. Reinicia `npm run dev` y ve a **Llamadas**.
+
+Solo hace falta `ANTHROPIC_API_KEY` para el paso 2; la sincronización con
+Fathom funciona sin ella.
 
 ## Estructura del proyecto
 

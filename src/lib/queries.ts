@@ -9,6 +9,7 @@ import {
   type Payment,
   type Revision,
   type RevisionStatus,
+  type SalesCall,
 } from "./types";
 
 // ---------- Clients ----------
@@ -401,4 +402,119 @@ export function getLastRevisionByClient(): Map<number, string> {
     )
     .all() as { client_id: number; last_date: string }[];
   return new Map(rows.map((r) => [r.client_id, r.last_date]));
+}
+
+// ---------- Sales calls (Fathom) ----------
+
+export function listSalesCalls(opts: { from: string; to: string }): SalesCall[] {
+  return getDb()
+    .prepare(
+      `SELECT id, fathom_recording_id, title, date, started_at, duration_min, url, closer_name, closer_email,
+         prospect_name, prospect_email, client_id, closer_talk_pct, closer_questions, outcome, outcome_source,
+         amount, score, analysis, analyzed_at, notes, created_at
+       FROM sales_calls WHERE date BETWEEN :from AND :to ORDER BY started_at DESC`
+    )
+    .all({ from: opts.from, to: opts.to }) as unknown as SalesCall[];
+}
+
+export function getSalesCall(id: number): SalesCall | undefined {
+  return getDb().prepare("SELECT * FROM sales_calls WHERE id = ?").get(id) as SalesCall | undefined;
+}
+
+export function countUnanalyzedCalls(): number {
+  const row = getDb()
+    .prepare("SELECT COUNT(*) as n FROM sales_calls WHERE analyzed_at IS NULL AND transcript IS NOT NULL")
+    .get() as { n: number };
+  return row.n;
+}
+
+function avg(values: (number | null)[]): number | null {
+  const nums = values.filter((v): v is number => v != null);
+  return nums.length ? nums.reduce((s, v) => s + v, 0) / nums.length : null;
+}
+
+export interface CloserStats {
+  closer: string;
+  calls: number;
+  closes: number;
+  closeRate: number | null;
+  revenue: number;
+  avgScore: number | null;
+  avgTalkPct: number | null;
+}
+
+export function getSalesCallStats(calls: SalesCall[]) {
+  const sales = calls.filter((c) => c.outcome !== "no_venta");
+  const decided = sales.filter((c) => c.outcome !== "pendiente");
+  const closed = sales.filter((c) => c.outcome === "cerrada");
+  const revenue = closed.reduce((s, c) => s + (c.amount ?? 0), 0);
+  const closedWithAmount = closed.filter((c) => c.amount != null);
+
+  const byOutcome = new Map<string, number>();
+  for (const c of sales) byOutcome.set(c.outcome, (byOutcome.get(c.outcome) ?? 0) + 1);
+
+  const objections = new Map<string, { count: number; overcome: number; closed: number }>();
+  const phaseTotals = new Map<string, number[]>();
+  for (const c of sales) {
+    if (!c.analysis) continue;
+    const a = JSON.parse(c.analysis) as {
+      objeciones?: { tipo: string; superada: boolean }[];
+      fases?: Record<string, number>;
+    };
+    const seen = new Set<string>();
+    for (const o of a.objeciones ?? []) {
+      const cur = objections.get(o.tipo) ?? { count: 0, overcome: 0, closed: 0 };
+      cur.count++;
+      if (o.superada) cur.overcome++;
+      if (!seen.has(o.tipo) && c.outcome === "cerrada") cur.closed++;
+      seen.add(o.tipo);
+      objections.set(o.tipo, cur);
+    }
+    for (const [phase, score] of Object.entries(a.fases ?? {})) {
+      const arr = phaseTotals.get(phase) ?? [];
+      arr.push(score);
+      phaseTotals.set(phase, arr);
+    }
+  }
+
+  const closers = new Map<string, SalesCall[]>();
+  for (const c of sales) {
+    const key = c.closer_name ?? "Sin asignar";
+    closers.set(key, [...(closers.get(key) ?? []), c]);
+  }
+  const byCloser: CloserStats[] = Array.from(closers.entries())
+    .map(([closer, cs]) => {
+      const dec = cs.filter((c) => c.outcome !== "pendiente");
+      const cl = cs.filter((c) => c.outcome === "cerrada");
+      return {
+        closer,
+        calls: cs.length,
+        closes: cl.length,
+        closeRate: dec.length ? (cl.length / dec.length) * 100 : null,
+        revenue: cl.reduce((s, c) => s + (c.amount ?? 0), 0),
+        avgScore: avg(cs.map((c) => c.score)),
+        avgTalkPct: avg(cs.map((c) => c.closer_talk_pct)),
+      };
+    })
+    .sort((a, b) => b.revenue - a.revenue);
+
+  return {
+    totalCalls: sales.length,
+    decidedCalls: decided.length,
+    closes: closed.length,
+    closeRate: decided.length ? (closed.length / decided.length) * 100 : null,
+    revenue,
+    avgTicket: closedWithAmount.length ? closedWithAmount.reduce((s, c) => s + (c.amount ?? 0), 0) / closedWithAmount.length : null,
+    revenuePerCall: decided.length ? revenue / decided.length : null,
+    avgDuration: avg(sales.map((c) => c.duration_min)),
+    avgClosedDuration: avg(closed.map((c) => c.duration_min)),
+    avgTalkPct: avg(sales.map((c) => c.closer_talk_pct)),
+    avgScore: avg(sales.map((c) => c.score)),
+    byOutcome,
+    objections: Array.from(objections.entries())
+      .map(([tipo, v]) => ({ tipo, ...v }))
+      .sort((a, b) => b.count - a.count),
+    phases: Array.from(phaseTotals.entries()).map(([phase, scores]) => ({ phase, avg: avg(scores) ?? 0 })),
+    byCloser,
+  };
 }

@@ -81,6 +81,34 @@ function migrate(db: DatabaseSync) {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS sales_calls (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      fathom_recording_id TEXT NOT NULL UNIQUE,
+      title TEXT NOT NULL,
+      date TEXT NOT NULL,
+      started_at TEXT,
+      duration_min REAL,
+      url TEXT,
+      closer_name TEXT,
+      closer_email TEXT,
+      prospect_name TEXT,
+      prospect_email TEXT,
+      client_id INTEGER REFERENCES clients(id) ON DELETE SET NULL,
+      summary TEXT,
+      transcript TEXT,
+      closer_talk_pct REAL,
+      closer_questions INTEGER,
+      outcome TEXT NOT NULL DEFAULT 'pendiente',
+      outcome_source TEXT NOT NULL DEFAULT 'auto',
+      amount REAL,
+      score REAL,
+      analysis TEXT,
+      analyzed_at TEXT,
+      notes TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_sales_calls_date ON sales_calls(date);
     CREATE INDEX IF NOT EXISTS idx_payments_client ON payments(client_id);
     CREATE INDEX IF NOT EXISTS idx_payments_date ON payments(date);
     CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date);
