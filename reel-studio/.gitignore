@@ -1,0 +1,15 @@
+node_modules/
+out/*
+!out/.gitkeep
+footage/
+editing-pack/
+# Raw clips and assembled masters are big — they live on disk, not in git.
+public/*/raw/
+public/*/video.mp4
+public/*/video.prev.mp4
+public/*/raw/proxy/
+public/*/*.mov
+public/*/*.MOV
+public/*/test-*
+*.tmp.*
+__pycache__/
