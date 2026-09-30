@@ -1,8 +1,7 @@
-# avatar.md — DCTEAM / PRIME-X (BORRADOR)
+# avatar.md — DCTEAM / PRIME-X
 
 > Condensado de `avatar/Avatar_cliente_ideal.md`, `avatar/Angulos_Ads_y_Voz_de_Cliente.md` y `avatar/Banco_de_Lenguaje_Clientes.md`.
 > Las frases entre comillas son literales de clientes reales o de Diego. No inventar nuevas.
-> Secciones marcadas con [PENDIENTE] se completan en la entrevista.
 
 ## Who they are
 Hombre de trabajo serio y responsabilidad. Núcleo validado por datos: 40-58 años. Rango ampliado a 25-50
@@ -93,7 +92,16 @@ Nunca: competir en precio con el entrenador de dieta cerrada o con el bote de 20
 - Entrenador ausente: "Si tu entrenador no te ha cambiado el plan en meses, no tienes entrenador. Tienes un PDF caro"
 - TRT explicado con honestidad (uso clínico vs abuso)
 - Recomposición > báscula
-[PENDIENTE: búsquedas literales que haría a las 23:47 de un martes malo]
+
+Búsquedas literales (martes, 23:47) → intención oculta (casi hooks tal cual):
+- "como estar menos cansado" → "quiero volver a tener la energía de antes y no sé qué me pasa"
+- "porque me cuesta dormir" → "duermo mal y ya no aguanto el día"
+- "Porque no pierdo peso si no como" → "hago todo bien y no funciona; algo está roto dentro"
+- "porque mi libido esta baja" → "me siento menos hombre y no se lo puedo contar a nadie"
+- "como mejorar la productividad para mi empresa" → "ya no rindo igual y se nota en el trabajo"
+- "Trt" / "trt ciclo testosterona" → "¿necesito química? ¿es lo mismo TRT que un ciclo? ¿es peligroso?"
+- "peptidos bajar grasa" → "busco un atajo porque lo normal no me funciona" (mismo terreno que la
+  química: educar con criterio, uso vs abuso, sin vender atajos)
 
 ## Positioning notes
 - "No soy influencer. Soy entrenador." Autoridad fisiológica, sobrio, premium, cero humo.
