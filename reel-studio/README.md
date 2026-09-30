@@ -78,7 +78,7 @@ npm run studio   # → composición "brand"
 | Elegir tomas | `public/reel-01/TAKELIST.md` → `SEGMENTS` en `public/reel-01/assemble.py` |
 | Revisar reinicios / cortes | `python3 tools/rms.py reel-01 raw/c01.mp4 63.4 [--end]` |
 | Montar el master | `python3 public/reel-01/assemble.py` (`--denoise` solo si hay ruido) |
-| Transcribir el master | `tools/transcribe.sh reel-01` → **corrige** `tx/words.json` contra el guion |
+| Transcribir el master | `tools/transcribe.sh reel-01` → **corrige** `tx/words.json` contra el guion (`--force` para reemplazar uno anterior) |
 | Revisar subtítulos | `python3 tools/chunk_preview.py reel-01` |
 | Tarjetas | `src/reels/reel-01/cards.json` |
 | Cámara, sonido, zona segura | `src/reels/reel-01/index.tsx` |
@@ -113,6 +113,22 @@ la caja legible y 432–1430 de Instagram.
 - **Cada zoom con un motivo** (`reason` es obligatorio en el código).
 - **Renderiza a un nombre de archivo nuevo cada vez.**
 - **TypeScript en 5.x.** Remotion no funciona con TS 7.
+
+## Si los subtítulos salen mal
+
+Si salen en inglés, se repiten o solo cubren los primeros segundos, Whisper ha
+"alucinado". `tools/transcribe.sh` ya se protege contra eso: usa la pista de
+audio más fuerte, trocea el audio en tramos de unos 40 s, fuerza el castellano,
+le pasa el guion (`SCRIPT.md`) como pista y reintenta los tramos que se repiten.
+Si aun así el resultado no parece castellano o no cubre el vídeo, **no** lo
+copia a `words.json` y te avisa.
+
+Un `words.json` que ya estaba mal no se pisa solo (se protege porque ahí van
+tus correcciones). Para reemplazarlo:
+
+```bash
+tools/transcribe.sh reel-01 --force     # guarda la versión anterior en tx/words.bak.json
+```
 
 ## Estructura
 
