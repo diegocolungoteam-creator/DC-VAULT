@@ -5,7 +5,9 @@ against Whisper hallucinations.
   python3 tools/transcribe.py reel-01                  → the assembled master (drives captions)
   python3 tools/transcribe.py reel-01 raw/c01.mov      → one source clip (for the take list)
   python3 tools/transcribe.py reel-01 --force          → replace an existing words.json (backed up)
-  python3 tools/transcribe.py reel-01 --lang en        → another language (default: es)
+  python3 tools/transcribe.py reel-01 --lang en        → another language (default: studio.config.json)
+  python3 tools/transcribe.py reel-01 --auto           → replace words.json with the best result:
+                                                         Whisper if it's good, else the script timed to the voice
 
 What it does beyond a single API call, and why:
 - Picks the LOUDEST audio track. iPhones and cameras often carry several, and a
@@ -135,12 +137,13 @@ def main():
     flags = [a for a in sys.argv[1:] if a.startswith("--")]
     if not argv:
         sys.exit(__doc__)
-    lang = "es"
+    lang = default_lang()
     for i, a in enumerate(sys.argv):
         if a == "--lang" and i + 1 < len(sys.argv):
             lang = sys.argv[i + 1]
             argv = [x for x in argv if x != lang]
     force = "--force" in flags
+    auto = "--auto" in flags
     reel = argv[0]
     rel = argv[1] if len(argv) > 1 else "video.mp4"
     src = ROOT / "public" / reel / rel
@@ -230,19 +233,37 @@ def main():
         return
     wj = tx / "words.json"
     cur = wj.read_text().strip() if wj.exists() else "[]"
-    if cur in ("", "[]") or force:
+    if auto and problems:
+        from captions_from_script import has_script, make
+        if has_script(reel):
+            print("\n→ Whisper no ha dado un buen resultado: uso tu guion sincronizado con la voz.")
+            make(reel)
+        else:
+            print(f"   ✗ y SCRIPT.md está vacío, así que no puedo usar el guion. Pega el guion y repite.")
+        return
+    if cur in ("", "[]") or force or auto:
         if cur not in ("", "[]"):
             bak = tx / "words.bak.json"
             bak.write_text(cur)
             print(f"   copia de la versión anterior → {bak.relative_to(ROOT)}")
-        if problems and not force:
-            print(f"   NO lo copio a words.json por los avisos de arriba. Revisa {out.name} y usa --force si está bien.")
+        if problems:
+            print(f"   NO lo copio a words.json por los avisos de arriba (resultado en {out.name}).\n"
+                  f"   Hazlo automático:  python3 tools/subtitulos.py {reel}")
             return
         wj.write_text(out.read_text())
         print(f"   → {wj.relative_to(ROOT)}. CORRÍGELO contra SCRIPT.md antes de renderizar (guía §5).")
     else:
         print(f"   {wj.relative_to(ROOT)} ya tiene una versión: no la piso.\n"
               f"   Compara con {out.name}, o usa --force para reemplazarla (se guarda copia).")
+
+
+def default_lang():
+    """The studio language, set once in studio.config.json ("idioma")."""
+    cfg = ROOT / "studio.config.json"
+    try:
+        return json.loads(cfg.read_text()).get("idioma", "es")
+    except (OSError, ValueError):
+        return "es"
 
 
 KEY = ""

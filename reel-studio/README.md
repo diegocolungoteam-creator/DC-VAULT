@@ -78,7 +78,7 @@ npm run studio   # → composición "brand"
 | Elegir tomas | `public/reel-01/TAKELIST.md` → `SEGMENTS` en `public/reel-01/assemble.py` |
 | Revisar reinicios / cortes | `python3 tools/rms.py reel-01 raw/c01.mp4 63.4 [--end]` |
 | Montar el master | `python3 public/reel-01/assemble.py` (`--denoise` solo si hay ruido) |
-| Subtítulos desde el guion (sin Whisper) | `python3 tools/captions_from_script.py reel-01` |
+| **Subtítulos (todo en uno)** | `python3 tools/subtitulos.py reel-01` (o `--todos`) |
 | Transcribir el master | `tools/transcribe.sh reel-01` → **corrige** `tx/words.json` contra el guion (`--force` para reemplazar uno anterior) |
 | Revisar subtítulos | `python3 tools/chunk_preview.py reel-01` |
 | Tarjetas | `src/reels/reel-01/cards.json` |
@@ -114,6 +114,20 @@ la caja legible y 432–1430 de Instagram.
 - **Cada zoom con un motivo** (`reason` es obligatorio en el código).
 - **Renderiza a un nombre de archivo nuevo cada vez.**
 - **TypeScript en 5.x.** Remotion no funciona con TS 7.
+
+## Subtítulos: un solo comando
+
+El idioma se configura **una vez** en `studio.config.json` (`"idioma": "es"`).
+Después, para cualquier reel:
+
+```bash
+python3 tools/subtitulos.py reel-01      # un reel
+python3 tools/subtitulos.py --todos      # todos los reels que tienen video.mp4
+```
+
+Transcribe en castellano; si el resultado no sirve (sale en inglés, se repite
+o no cubre el vídeo) o no tienes clave de Groq, usa tu guion sincronizado con
+la voz. No hay que elegir nada ni hacerlo a mano.
 
 ## Si los subtítulos salen mal
 

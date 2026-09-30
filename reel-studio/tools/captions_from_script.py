@@ -67,8 +67,18 @@ def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     if not args:
         sys.exit(__doc__)
-    reel = args[0]
-    rel = args[1] if len(args) > 1 else "video.mp4"
+    make(args[0], args[1] if len(args) > 1 else "video.mp4")
+
+
+def has_script(reel):
+    try:
+        script_words(reel)
+        return True
+    except SystemExit:
+        return False
+
+
+def make(reel, rel="video.mp4"):
     src = ROOT / "public" / reel / rel
     if not src.exists():
         sys.exit(f"✗ no existe {src.relative_to(ROOT)}")
