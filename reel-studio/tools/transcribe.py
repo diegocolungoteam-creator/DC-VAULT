@@ -201,6 +201,8 @@ def main():
     out = tx / f"{name}.whisper.json"
     out.write_text(json.dumps(words, ensure_ascii=False, indent=0))
     print(f"\n✅ {len(words)} palabras → {out.relative_to(ROOT)}")
+    if words:
+        print(f"   empieza: {' '.join(w['text'] for w in words[:12])} …")
 
     problems = []
     if not words:
@@ -213,6 +215,9 @@ def main():
             problems.append(f"el texto no parece estar en '{lang}'")
     for p in problems:
         print(f"⚠️  {p}")
+    if problems:
+        print(f"   Alternativa sin Whisper (subtítulos = tu guion, sincronizados con la voz):\n"
+              f"     python3 tools/captions_from_script.py {reel}")
 
     sus = [w for w in words if w["end"] - w["start"] > 0.9]
     if sus:

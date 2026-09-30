@@ -78,6 +78,7 @@ npm run studio   # → composición "brand"
 | Elegir tomas | `public/reel-01/TAKELIST.md` → `SEGMENTS` en `public/reel-01/assemble.py` |
 | Revisar reinicios / cortes | `python3 tools/rms.py reel-01 raw/c01.mp4 63.4 [--end]` |
 | Montar el master | `python3 public/reel-01/assemble.py` (`--denoise` solo si hay ruido) |
+| Subtítulos desde el guion (sin Whisper) | `python3 tools/captions_from_script.py reel-01` |
 | Transcribir el master | `tools/transcribe.sh reel-01` → **corrige** `tx/words.json` contra el guion (`--force` para reemplazar uno anterior) |
 | Revisar subtítulos | `python3 tools/chunk_preview.py reel-01` |
 | Tarjetas | `src/reels/reel-01/cards.json` |
@@ -122,6 +123,17 @@ audio más fuerte, trocea el audio en tramos de unos 40 s, fuerza el castellano,
 le pasa el guion (`SCRIPT.md`) como pista y reintenta los tramos que se repiten.
 Si aun así el resultado no parece castellano o no cubre el vídeo, **no** lo
 copia a `words.json` y te avisa.
+
+**Si siguen saliendo en inglés, usa el guion en vez de Whisper:**
+
+```bash
+python3 tools/captions_from_script.py reel-01
+```
+
+Coge el texto de `src/reels/reel-01/SCRIPT.md` (siempre en castellano y bien
+escrito) y lo sincroniza con los tramos en los que hablas en el vídeo. El
+tiempo es aproximado: revísalo en el Studio y, si dijiste algo distinto al
+guion, corrige el guion o `tx/words.json`. Guarda el anterior en `tx/words.bak.json`.
 
 Un `words.json` que ya estaba mal no se pisa solo (se protege porque ahí van
 tus correcciones). Para reemplazarlo:
