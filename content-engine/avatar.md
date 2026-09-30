@@ -79,7 +79,12 @@ Precio — marco equivocado (con qué compara a Diego cuando duda):
 - Entrenadores tipo culturista: dieta cerrada, cero individualización, "hazlo y hazlo".
 - La tienda de suplementos: salir con 200 € en botes. ("los suplementos no son mágicos")
 - Gente sin experiencia real en optimización hormonal.
-Precio — marco correcto: [PENDIENTE]
+Precio — marco correcto: la confianza que transmite Diego. No se compara precio contra precio, se
+compara "fiarse" contra "volver a perder meses". Lo dicen ellos: "una persona de la que fiarse 100%",
+"confiar a ciegas en Diego", "no hay inversión que tenga mejor retorno".
+Implicación para contenido: la venta se gana antes de hablar de precio, mostrando criterio, cercanía y
+respuesta real (el opuesto al entrenador ausente y al "divo").
+Nunca: competir en precio con el entrenador de dieta cerrada o con el bote de 200 €.
 
 ## What content stops their scroll
 - Energía / cansancio: "Si tienes más de 40 y te levantas ya cansado, esto te interesa"
