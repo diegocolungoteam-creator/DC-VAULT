@@ -57,7 +57,9 @@ El después:
 ## What they'll never admit
 Bajo el "quiero perder barriga": ha perdido el respeto por sí mismo y siente que está envejeciendo antes
 de tiempo (energía, libido, rendimiento en el trabajo). Cree que le faltan ganas; le faltan sistemas.
-[PENDIENTE: la frase que tu cliente nunca diría en voz alta]
+- Le da vergüenza quitarse la camiseta en casa. (Cliente real, sep 2026, contado por Diego; sustituir
+  por sus palabras exactas si se recuperan del chat.) Es el reverso de "volver a disfrutar quitándose la
+  camiseta": la vergüenza no es en la playa ni en el gimnasio, es delante de los suyos.
 
 ## What they want
 No quiere perder 10 kg. Quiere volver a sentirse fuerte, recuperar energía, gustarse, sentirse atractivo
