@@ -75,7 +75,11 @@ Objeciones antes de entrar:
 - Inaccesibilidad: "pensar que me iba a encontrar con alguien un poco divo"
 - Rigidez: "me da mucho miedo el control riguroso de la dieta"
 - Equivocarse solo: "no tener la certeza de hacer las cosas bien"
-Precio: [PENDIENTE: con qué lo compara y qué comparación lo hace obvio]
+Precio — marco equivocado (con qué compara a Diego cuando duda):
+- Entrenadores tipo culturista: dieta cerrada, cero individualización, "hazlo y hazlo".
+- La tienda de suplementos: salir con 200 € en botes. ("los suplementos no son mágicos")
+- Gente sin experiencia real en optimización hormonal.
+Precio — marco correcto: [PENDIENTE]
 
 ## What content stops their scroll
 - Energía / cansancio: "Si tienes más de 40 y te levantas ya cansado, esto te interesa"
