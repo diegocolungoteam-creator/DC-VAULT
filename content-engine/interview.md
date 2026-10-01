@@ -22,6 +22,13 @@ Fuente de verdad para el CONFIG del motor y los documentos cerebro.
      Orden antes que volumen.
    - Formato "post cebo" (gancho fuerte + muchos comentarios) > "sígueme".
    - Grabación en tandas.
-   - PROPUESTA de estructura fija (pendiente de confirmar):
+   - Estructura fija CONFIRMADA:
      lun Aportar (lead magnet 1) · mar Educar · mié Vender (testimonio) ·
      jue Aportar (lead magnet 2) · vie Educar · sáb Vender (testimonio / entrenador ausente) · dom Descanso
+   - Historias: sí, el motor propone secuencias de historias de venta el miércoles y el sábado.
+
+6. **Frases literales de clientes:** ya cubiertas en avatar.md + fuentes (no se piden más ahora).
+
+7. **Voz:** cubierta en `avatar/Avatar_cliente_ideal.md` (directa, masculina, racional, sin humo, porqué fisiológico,
+   "No soy influencer. Soy entrenador."). Tacos: puntuales, solo en ganchos (ej. "te sentiste como una mierda").
+   Tratamiento: cercano y sobrio, máximo "tío". Sin exceso de emojis.
