@@ -48,3 +48,9 @@ Fuente de verdad para el CONFIG del motor y los documentos cerebro.
 - 2026-10-01: Diego publica hoy "mi método" con CTA PRIME. Embudo PRIME: test con preguntas → enlace a WhatsApp.
   Será la primera pieza tras la fecha base; entra como pieza fuera de calendario ("off-plan") y se analiza igual.
 - Ejecución: en el Mac de Diego (opción A, launchd). Aquí se prepara todo en el repo; test y scheduler en su Mac.
+
+## Setup
+- Carpeta Drive "Contenido": 1HuPmJ-1ZnOCcUxSPloVNUsL3aEGVwLvo (cuenta diegocolungoteam@gmail.com)
+- Calendario de Contenido (14 cols A-N): 1DEsUSpuafX8_GETJiGS3OUgMrXljkk0Gb8zA1zduNIE
+- Banco de ideas (6 cols A-F): 1PVyoCln5R9BbuhuqSKbgXNOUuxlXeKJtLmz7TFl1MF4
+- Pestañas: creadas por conversión CSV; el código resuelve la primera pestaña por API (o renombrar a Calendario / Ideas).
