@@ -310,6 +310,7 @@ def main():
             "fecha": m.get("timestamp", "")[:10],
             "tipo": kind,
             "gancho": cap[:90],
+            "texto": cap,  # pie de foto completo: la CTA suele ir al final
             "url": m.get("permalink", ""),
             "alcance": ins.get("reach", ""),
             "repro": ins.get("views", ""),

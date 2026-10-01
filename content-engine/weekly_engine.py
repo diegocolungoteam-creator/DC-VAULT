@@ -537,6 +537,7 @@ def paso3_analisis(publicadas, escribir=True):
         alcance, guard, comp, leads = metricas(item)
         resumen_top.append({
             "gancho": (item["post"].get("gancho") or "").strip()[:90],
+            "texto": item["post"].get("texto") or item["post"].get("gancho") or "",
             "fecha": item["post"].get("fecha", ""),
             "angulo": item["angulo"], "formato": item["formato"],
             "planificada": item["planificada"],
@@ -546,7 +547,7 @@ def paso3_analisis(publicadas, escribir=True):
         })
 
     top = resumen_top[0]
-    texto_top = _sin_acentos(top["gancho"])
+    texto_top = _sin_acentos(top["texto"])
     cta = next((k for k in LEAD_KEYWORDS
                 if re.search(rf"\b{re.escape(_sin_acentos(k))}\b", texto_top)), None)
     if not cta and "comenta" in texto_top:
