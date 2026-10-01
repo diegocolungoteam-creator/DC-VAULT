@@ -39,3 +39,5 @@ Fuente de verdad para el CONFIG del motor y los documentos cerebro.
      (sin dosis, sin protocolos, sin proveedores, sin "tómate X"). → guardarraíl también en el prompt del LLM.
    - Vender atajos / "ciclos rápidos". Hablar como influencer fitness.
    - Permitido: algún trend de moda, adaptado a la voz.
+
+9. **Guía de guiones:** no tiene patrón fijo → usar el writing-system.md por defecto del motor, personalizado con su voz.
