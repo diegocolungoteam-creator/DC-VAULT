@@ -47,17 +47,30 @@ LAST_RUN_FILE = DIR / ".last_run"
 # ===========================================================================
 # >>> CONFIG — rellena TODO esto antes de la primera corrida <<<
 # ===========================================================================
-HANDLE = "TU_HANDLE"                 # sin @, p. ej. "micuenta"
-MARCA = "TU_MARCA"                   # nombre corto de la marca / del creador
-ID_PREFIX = "BRAND"                  # prefijo de los IDs del Banco de ideas: BRAND-001, BRAND-002…
-SINCE_BASELINE = "2026-01-01"        # línea de salida (YYYY-MM-DD): lo anterior no cuenta
-CTA_KEYWORD = "PALABRA"              # la palabra que comentan para pedir el recurso / lead
-IDIOMA_CONTENIDO = "INGLÉS"          # idioma de TODO el texto de cara al público
+HANDLE = "diegocolungo"              # sin @
+MARCA = "DC TEAM / PRIME-X"          # nombre corto de la marca / del creador
+ID_PREFIX = "DCT"                    # prefijo de los IDs del Banco de ideas: DCT-001, DCT-002…
+SINCE_BASELINE = "2026-10-01"        # línea de salida (YYYY-MM-DD): lo anterior no cuenta
+CTA_KEYWORD = "PRIME"                # CTA de venta: test con preguntas -> WhatsApp
+# Todas las palabras que cuentan como lead (PRIME + las de cada recurso, ver recursos_cta.md).
+# Se buscan como palabra completa, sin distinguir mayúsculas ni acentos.
+LEAD_KEYWORDS = [
+    "PRIME", "Sueño", "Descanso", "IA", "Analitica", "Colesterol", "TRT", "Error",
+    "SEÑALES", "INICIO", "inflamacion", "Comunidad", "Calculadora", "Entreno", "Acne",
+    "aplicacion", "GH", "Reta", "Suple", "Tensión",
+]
+IDIOMA_CONTENIDO = "ESPAÑOL DE ESPAÑA"  # idioma de TODO el texto de cara al público
 
-CAL_SHEET_ID = "PON_AQUI_EL_ID_DE_LA_HOJA_CALENDARIO"
-CAL_TAB = "Calendario"
-IDEA_SHEET_ID = "PON_AQUI_EL_ID_DE_LA_HOJA_BANCO_DE_IDEAS"
-IDEA_TAB = "Ideas"
+CAL_SHEET_ID = "1DEsUSpuafX8_GETJiGS3OUgMrXljkk0Gb8zA1zduNIE"
+IDEA_SHEET_ID = "1PVyoCln5R9BbuhuqSKbgXNOUuxlXeKJtLmz7TFl1MF4"
+# Nombre de pestaña: vacío = se usa la primera pestaña de cada hoja (se resuelve al arrancar).
+CAL_TAB = ""
+IDEA_TAB = ""
+
+# Documentos cerebro que se meten enteros en el prompt de generación.
+AVATAR_MD = DIR / "avatar.md"
+WRITING_MD = DIR / "writing-system.md"
+RECURSOS_MD = DIR / "recursos_cta.md"
 
 # Credenciales: SIEMPRE en ficheros locales, nunca pegadas en un chat.
 SA_KEY = pathlib.Path.home() / ".config" / "gcloud" / "content-engine-sa.json"
@@ -67,24 +80,54 @@ VENV_PIP = DIR / ".venv" / "bin" / "pip"
 # Lo que el redactor necesita saber del creador y de su cliente. Sale de la entrevista
 # (Step 1 de la guía) y de avatar.md / content_brain.md. Cuanto más concreto, mejor.
 PERFIL = {
-    "quien_es": "coach online de X en Y",  # una línea: qué hace y para quién
+    "quien_es": (
+        "Diego, entrenador online (programa PRIME-X) de hombres de trabajo serio que han perdido "
+        "energía, descanso, libido y físico; experto en optimización hormonal y TRT desde la información"
+    ),
     "avatar": (
-        "el cliente ideal, en una o dos frases: edad, situación, qué quiere, en qué está "
-        "atascado, entre qué dos miedos está atrapado"
+        "hombre de 25-58 años (núcleo 40-58), empresario, autónomo o técnico con responsabilidad "
+        "(operador de planta, bombero, profesor, supervisor...), con dinero y sin tiempo, que ya ha "
+        "pasado por el gimnasio. Entra por el cansancio, el mal sueño, el bajón de ánimo y la libido, "
+        "no por la barriga. Le fallaron las dietas cerradas, los suplementos y el entrenador que no "
+        "contesta. Quiere volver a respetarse y alguien de quien fiarse al 100%."
     ),
     "frases_avatar": [
-        "\"frase textual 1 del cliente, sacada de DMs o llamadas reales\"",
-        "\"frase textual 2\"",
-        "\"frase textual 3\"",
+        "\"me sentía bajo de ánimos, siempre muy cansado y físicamente nada bien\"",
+        "\"el uniforme casi tenía que cambiarlo\"",
+        "\"estar persiguiendo al entrenador para que contestara, que no se cambiaba nada en meses\"",
+        "\"el miedo era la testosterona\"",
+        "\"no tener que rayarme la cabeza y confiar a ciegas\"",
     ],
-    "miedo_profundo": "el miedo que nunca admite en voz alta",
-    "creencia_a_romper": "la creencia central que TODO el contenido ataca",
-    "voz": "cómo habla el creador: tono, ritmo, si suelta tacos, qué no diría jamás",
-    "muletillas": ["'expresión suya 1'", "'expresión suya 2'"],  # máx. 1 por guión
-    "credibilidad": "una línea de credibilidad, usada como puente, nunca como tema",
-    "nicho_dentro": "temas que SÍ trata la cuenta, separados por comas",
-    "nicho_fuera": "temas PROHIBIDOS aunque den alcance, separados por comas",
-    "patrones_probados": "Myth-Bust Dialogue, Contrast List, Tactical Tip Stack, Specific Blueprint",
+    "miedo_profundo": (
+        "que esto ya no tenga vuelta atrás y se esté haciendo viejo antes de tiempo; le da vergüenza "
+        "quitarse la camiseta en casa"
+    ),
+    "creencia_a_romper": (
+        "'será la edad' / 'necesito más química': no le faltan ganas ni química, le falta un sistema "
+        "y alguien que lo ajuste cada semana"
+    ),
+    "voz": (
+        "directa, masculina, racional, poco emocional; entrenador, no motivador; explica el porqué "
+        "fisiológico con ejemplos visuales; frases cortas; tacos solo puntuales y en el gancho; "
+        "trato cercano y sobrio (máximo 'tío'); nunca habla como influencer fitness"
+    ),
+    "muletillas": ["'La mayoría piensa…'", "'El problema es que…'", "'Lo que ocurre realmente es…'",
+                   "'Aquí está el error.'", "'Yo pongo el sistema, tú pones la ejecución.'"],
+    "credibilidad": "lo veo cada semana en mis clientes",
+    "nicho_dentro": (
+        "energía, sueño, libido, ánimo, recomposición corporal, entrenamiento y nutrición con sistema, "
+        "analíticas, optimización hormonal, TRT y péptidos explicados desde la información, "
+        "el contraste con el entrenador ausente / PDF caro, casos reales de clientes"
+    ),
+    "nicho_fuera": (
+        "vender la química como rápida, atajo o inocua; recomendar sustancias, dosis, protocolos, "
+        "marcas o proveedores; ciclos rápidos; milagros, hacks, secretos, transformación garantizada, "
+        "motivación, mindset; prometer una app fluida"
+    ),
+    "patrones_probados": (
+        "Diálogo rompe-mitos, Lista de contraste, Lista táctica, Plan específico, "
+        "Roleplay de venta (solo con objeciones reales del avatar)"
+    ),
 }
 # ===========================================================================
 
@@ -100,10 +143,21 @@ CLAUDE_MAX_TOKENS = 16000
 CLAUDE_EFFORT = "high"
 
 # Estructura semanal fija del creador: NO se toca. Solo se afina guión/gancho/CTA con
-# lo aprendido en el análisis. Por defecto: 4 piezas/semana + 2 secuencias de historias
-# (día 1 reel, 2 historias DOLOR, 3 reel, 4 historias CASO, 5 caso de éxito, 6 descanso,
-# 7 personal/recap). Si tu cadencia es otra, cambia paso5_escritura() y el prompt.
+# lo aprendido en el análisis. Bucle aportar -> educar -> vender, dos veces por semana:
+# 6 piezas (lun-sáb) + 2 secuencias de historias de venta (mié y sáb) + domingo descanso.
+# dia_num = posición en la semana (1 = lun ... 7 = dom). Las piezas las escribe el modelo;
+# historias y descanso los pone el motor.
 DIAS_SEMANA = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"]
+ESTRUCTURA_PIEZAS = {
+    1: ("Aportar", "Lead magnet 1 (post cebo, conciencia baja, CTA = palabra del recurso)"),
+    2: ("Educar", "Educativo (energía, sueño, libido, TRT explicado, recomposición...)"),
+    3: ("Vender", "Testimonio / caso real de cliente (CTA = PRIME)"),
+    4: ("Aportar", "Lead magnet 2 (post cebo, conciencia baja, CTA = palabra del recurso)"),
+    5: ("Educar", "Educativo (tema distinto al del día 2)"),
+    6: ("Vender", "Testimonio o 'entrenador ausente / PDF caro' (CTA = PRIME)"),
+}
+DIAS_HISTORIAS = (3, 6)   # tras la pieza de esos días va una secuencia de historias de venta
+DIA_DESCANSO = 7
 
 
 def log(msg):
@@ -136,7 +190,7 @@ def paso1_fetch_insights():
     try:
         r = subprocess.run(
             [sys.executable, str(FETCH_SCRIPT), "--limit", "60",
-             "--keywords", CTA_KEYWORD, "--since", SINCE_BASELINE],
+             "--keywords", ",".join(LEAD_KEYWORDS), "--since", SINCE_BASELINE],
             cwd=str(DIR), capture_output=True, text=True, timeout=300,
         )
         for line in r.stdout.splitlines():
@@ -203,6 +257,25 @@ def sheets_client():
     return build("sheets", "v4", credentials=creds)
 
 
+def resolver_pestanas(svc):
+    """Si CAL_TAB / IDEA_TAB están vacíos, usa la primera pestaña de cada hoja (las hojas
+    se crearon desde CSV y la pestaña puede llamarse 'Hoja 1', 'Sheet1' o como el archivo).
+    Se entrecomilla para que los nombres con espacios funcionen en rangos A1."""
+    global CAL_TAB, IDEA_TAB
+
+    def primera(sheet_id):
+        meta = svc.spreadsheets().get(spreadsheetId=sheet_id,
+                                      fields="sheets.properties.title").execute()
+        titulo = meta["sheets"][0]["properties"]["title"]
+        return "'" + titulo.replace("'", "''") + "'"
+
+    if not CAL_TAB:
+        CAL_TAB = primera(CAL_SHEET_ID)
+    if not IDEA_TAB:
+        IDEA_TAB = primera(IDEA_SHEET_ID)
+    log(f"  pestañas: Calendario={CAL_TAB} · Ideas={IDEA_TAB}")
+
+
 def get_values(svc, sheet_id, a1_range):
     r = svc.spreadsheets().values().get(spreadsheetId=sheet_id, range=a1_range).execute()
     return r.get("values", [])
@@ -247,6 +320,11 @@ PALABRAS_VACIAS = {
     "pero", "sus", "sin", "sobre", "este", "esta", "esto", "eso", "ese", "ya", "muy",
     "hay", "son", "está", "están", "tiene", "tienes", "hacer", "cuando", "porque",
 }
+
+
+def _sin_acentos(txt):
+    txt = unicodedata.normalize("NFKD", str(txt or "").lower())
+    return "".join(c for c in txt if not unicodedata.combining(c))
 
 
 def _tokens(txt):
@@ -428,8 +506,8 @@ def paso2_sync_metrics(svc, insights, escribir=True):
 # Paso 3: ANÁLISIS (ranking + aprendizaje). Sin LLM.
 # ---------------------------------------------------------------------------
 def paso3_analisis(publicadas, escribir=True):
-    """Rankea TODO lo publicado — planificado o no. Los guardados por 1k de alcance
-    mandan (predicen autoridad), luego compartidos, luego leads por palabra clave."""
+    """Rankea TODO lo publicado — planificado o no. Orden de negocio de DC TEAM:
+    leads (comentarios con palabra clave) > alcance (gente nueva) > guardados > compartidos."""
     log("PASO 3/5 — analizando qué rindió mejor…")
     hoy = datetime.now().strftime("%Y-%m-%d")
 
@@ -450,8 +528,7 @@ def paso3_analisis(publicadas, escribir=True):
 
     def score(item):
         alcance, guard, comp, leads = metricas(item)
-        saves_per_1k = (guard / alcance * 1000) if alcance else 0
-        return (saves_per_1k, comp, leads)
+        return (leads, alcance, guard, comp)
 
     ranking = sorted(publicadas, key=score, reverse=True)
 
@@ -463,14 +540,20 @@ def paso3_analisis(publicadas, escribir=True):
             "fecha": item["post"].get("fecha", ""),
             "angulo": item["angulo"], "formato": item["formato"],
             "planificada": item["planificada"],
+            "leads": int(leads),
             "alcance": alcance, "guardados": int(guard), "compartidos": int(comp),
             "saves_por_1k": round((guard / alcance * 1000), 1) if alcance else 0,
         })
 
     top = resumen_top[0]
-    cta_kw = [CTA_KEYWORD.lower(), "comment", "comenta", "dm", "link in bio", "link en bio"]
-    cta = next((k for k in cta_kw if k in top["gancho"].lower()), None)
+    texto_top = _sin_acentos(top["gancho"])
+    cta = next((k for k in LEAD_KEYWORDS
+                if re.search(rf"\b{re.escape(_sin_acentos(k))}\b", texto_top)), None)
+    if not cta and "comenta" in texto_top:
+        cta = "comenta (palabra no reconocida)"
     n_plan = sum(1 for p in publicadas if p["planificada"])
+    muestra = (" · muestra todavía pequeña: tendencias, no conclusiones"
+               if len(publicadas) < 20 else "")
 
     linea = (
         f"- {hoy}: {len(publicadas)} piezas analizadas ({n_plan} del calendario, "
@@ -478,10 +561,10 @@ def paso3_analisis(publicadas, escribir=True):
         f"top ángulo/formato: {top['angulo'] or '?'}/{top['formato'] or '?'}"
         f"{'' if top['planificada'] else ' (improvisada)'} · "
         f"mejor gancho: \"{top['gancho']}\" · "
-        f"mejor CTA: {cta or 'sin CTA claro detectado — pendiente de fijar uno fijo'} · "
-        f"aprendizaje: {fmt_k(top['alcance'])} alcance con {top['guardados']} guardados "
-        f"({top['saves_por_1k']} por 1k reach) fue lo mejor de esta tanda; repetir este "
-        f"patrón de gancho/formato en próximas piezas."
+        f"mejor CTA: {cta or 'sin palabra clave detectada en el texto del post'} · "
+        f"aprendizaje: {top['leads']} leads, {fmt_k(top['alcance'])} alcance, "
+        f"{top['guardados']} guardados y {top['compartidos']} compartidos fue lo mejor de esta "
+        f"tanda; repetir este patrón de gancho/formato en próximas piezas{muestra}."
     )
     if escribir:
         _append_a_brain(linea)
@@ -529,8 +612,8 @@ def cargar_anthropic_key():
 # cosa, así que desaparece el "respondió pero no es JSON válido" que había con Groq.
 # Ojo: la API no admite minLength/maxItems ni esquemas recursivos, y todos los objetos
 # necesitan additionalProperties:false y su lista completa de required.
-# dia_num va 1/3/5/7 porque los días 2 y 4 son historias y el 6 descanso: esos los pone
-# el motor por su cuenta (estructura fija del creador, no la decide el modelo).
+# dia_num va de 1 a 6 (lun-sáb): son las 6 piezas. Historias y descanso los pone el motor
+# por su cuenta (estructura fija del creador, no la decide el modelo).
 ESQUEMA_SALIDA = {
     "type": "object",
     "properties": {
@@ -554,16 +637,18 @@ ESQUEMA_SALIDA = {
             "items": {
                 "type": "object",
                 "properties": {
-                    "dia_num": {"type": "integer", "enum": [1, 3, 5, 7]},
+                    "dia_num": {"type": "integer", "enum": [1, 2, 3, 4, 5, 6]},
                     "idea": {"type": "string", "description": "Título de la pieza, en el idioma del contenido"},
                     "objetivo": {"type": "string", "enum": ["Educar", "Vender", "Conectar", "Aportar"]},
                     "angulo": {"type": "string", "description": "Etiqueta corta de 1-3 palabras"},
                     "formato": {"type": "string", "enum": ["Reel", "Carrusel"]},
                     "guion": {"type": "string", "description": "Guion hablado con etiquetas [HOOK]/[BODY]/[CTA]"},
+                    "palabra_clave": {"type": "string", "description": "Palabra que se pide comentar en la CTA"},
+                    "recurso_nuevo": {"type": "boolean", "description": "true si la palabra/recurso no existe aún en la lista de recursos"},
                     "necesita_evidencia": {"type": "boolean"},
                 },
                 "required": ["dia_num", "idea", "objetivo", "angulo", "formato",
-                             "guion", "necesita_evidencia"],
+                             "guion", "palabra_clave", "recurso_nuevo", "necesita_evidencia"],
                 "additionalProperties": False,
             },
         },
@@ -573,9 +658,16 @@ ESQUEMA_SALIDA = {
 }
 
 
+def _leer(path):
+    try:
+        return path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return f"(no encuentro {path.name})"
+
+
 def construir_prompt(analisis, max_idea_num):
-    """Prompt compacto: resumen del análisis + patrón ganador + esquema exacto
-    del Banco de ideas. NO mandamos el histórico completo para cuidar tokens."""
+    """System = quién escribe y para quién (perfil + avatar.md + writing-system.md + recursos).
+    User = análisis de la semana + las dos tareas con la estructura fija."""
     if analisis:
         # Se le pasan los ganchos REALES que mejor rindieron, con sus números y si
         # eran del calendario o improvisados. Es la única forma de que la generación
@@ -585,107 +677,123 @@ def construir_prompt(analisis, max_idea_num):
             origen = "del calendario" if t["planificada"] else "improvisada, fuera del calendario"
             lineas_top.append(
                 f"  {i}. \"{t['gancho']}\" ({t['fecha']}, {origen}) — "
-                f"{fmt_k(t['alcance'])} alcance, {t['guardados']} guardados, "
-                f"{t['compartidos']} compartidos, {t['saves_por_1k']} guardados por 1k."
+                f"{t.get('leads', 0)} leads, {fmt_k(t['alcance'])} alcance, "
+                f"{t['guardados']} guardados, {t['compartidos']} compartidos."
             )
         detalle = "\n".join(lineas_top)
+        aviso = ("\nOJO: la muestra es pequeña todavía; trátalo como pista, no como regla."
+                 if analisis["n"] < 20 else "")
         resumen = (
             f"{analisis['n']} piezas publicadas analizadas "
             f"({analisis.get('n_planificadas', 0)} del calendario, "
             f"{analisis['n'] - analisis.get('n_planificadas', 0)} improvisadas).\n"
+            f"Orden de valor del negocio: leads > alcance > guardados > compartidos.\n"
             f"Lo que MEJOR ha rendido hasta ahora, en orden:\n{detalle}\n"
             f"Mejor ángulo/formato: {analisis['angulo'] or '?'}/{analisis['formato'] or '?'}. "
-            f"CTA que mejor funcionó: {analisis['cta'] or 'ninguno claro todavía, prueba uno directo tipo comenta una palabra clave'}.\n"
+            f"CTA del mejor post: {analisis['cta'] or 'ninguna palabra clave detectada'}.\n"
             f"Fíjate en QUÉ tienen en común los ganchos de arriba (tema, estructura, "
-            f"promesa) y aplica ese patrón a las piezas nuevas — sin copiar sus frases."
+            f"promesa) y aplica ese patrón a las piezas nuevas — sin copiar sus frases.{aviso}"
         )
     else:
         resumen = (f"Todavía no hay piezas nuevas con métricas desde la línea de salida "
-                   f"({SINCE_BASELINE}). Usa las hipótesis de partida de content_brain.md: "
-                   f"los patrones probados son {PERFIL['patrones_probados']}.")
+                   f"({SINCE_BASELINE}). Usa las hipótesis de partida del cerebro: entrar por "
+                   f"energía/sueño/libido, el instante detonante, el entrenador ausente, TRT "
+                   f"explicado con honestidad, recomposición > báscula, post cebo.")
 
     P = PERFIL
-    system = (
-        f"Eres el redactor de contenido de {MARCA} (@{HANDLE}), {P['quien_es']}. "
-        f"Le escribes a su cliente ideal: {P['avatar']} "
-        f"Frases textuales del cliente (útiles como ganchos): {' · '.join(P['frases_avatar'])}. "
-        f"Su miedo más profundo: {P['miedo_profundo']}. "
-        f"Creencia a romper SIEMPRE: {P['creencia_a_romper']}. "
-        f"VOZ DEL CREADOR: {P['voz']}. Muletillas suyas (con moderación, 1 por guión máx.): "
-        f"{', '.join(P['muletillas'])}. JAMÁS vendehumos ni hype falso. "
-        f"Credibilidad (máx. 1 línea por guión, como puente, nunca el tema): {P['credibilidad']}. "
-        f"REGLAS DURAS: (1) TODO el texto de cara al público en {IDIOMA_CONTENIDO} (los campos "
-        f"internos objecion/funcion/formato pueden ir en español). (2) Nicho: {P['nicho_dentro']}. "
-        f"NADA de: {P['nicho_fuera']}. (3) Cero relleno motivacional ('start your journey', "
-        f"'today!' PROHIBIDOS). (4) CTA por defecto: 'Comment {CTA_KEYWORD}'. "
-        f"Genera SOLO JSON válido, sin texto fuera del JSON."
-    )
+    system = f"""Eres el redactor de contenido de {MARCA} (@{HANDLE}): {P['quien_es']}.
+Le escribes a su cliente ideal: {P['avatar']}
+Frases textuales del cliente (útiles como ganchos): {' · '.join(P['frases_avatar'])}.
+Su miedo más profundo: {P['miedo_profundo']}.
+Creencia a romper SIEMPRE: {P['creencia_a_romper']}.
+VOZ DEL CREADOR: {P['voz']}. Muletillas suyas (máx. 1 por guión): {', '.join(P['muletillas'])}.
+Credibilidad (máx. 1 línea por guión, como puente, nunca el tema): "{P['credibilidad']}".
+
+REGLAS DURAS:
+1. TODO el texto de cara al público en {IDIOMA_CONTENIDO}.
+2. Nicho: {P['nicho_dentro']}. NADA de: {P['nicho_fuera']}.
+3. Sustancias (TRT, péptidos, GH, compuestos, suplementos): solo INFORMAR — qué es, cuándo tiene
+   sentido clínico, diferencia entre TRT clínico, optimización hormonal y ciclo, uso vs abuso.
+   NUNCA recomendar ni sugerir tomar nada, NUNCA dosis, protocolos, marcas ni proveedores, NUNCA
+   presentarlo como rápido, atajo o inocuo.
+4. Sin estudios ni estadísticas inventados. Argumenta con el mecanismo fisiológico y la experiencia
+   de casos.
+5. Nunca garantices resultados con cifra. TODA cifra de resultado de un cliente va entre corchetes.
+6. Cero relleno motivacional y cero lenguaje de influencer.
+
+Abajo tienes los tres documentos de referencia. Síguelos.
+
+===== avatar.md (el cliente) =====
+{_leer(AVATAR_MD)}
+
+===== writing-system.md (cómo se escribe un guion) =====
+{_leer(WRITING_MD)}
+
+===== recursos_cta.md (recursos que ya existen y su palabra clave) =====
+{_leer(RECURSOS_MD)}
+"""
+
+    estructura = "\n".join(f"día {d} ({DIAS_SEMANA[d - 1]}) = {fn}: {desc}"
+                           for d, (fn, desc) in ESTRUCTURA_PIEZAS.items())
     user = f"""ANÁLISIS DE RENDIMIENTO:
 {resumen}
 
 TAREA 1 — Banco de ideas: genera 8 ideas nuevas siguiendo EXACTO este esquema de columnas
 (ID · Idea/gancho · Objeción o miedo que ataca · Función estratégica · Formato · Plataforma).
-Los IDs deben continuar la secuencia {ID_PREFIX}-{max_idea_num+1:03d} en adelante.
-Cada objeción debe tener el formato "Obj. N — 'miedo textual del cliente'".
-Función estratégica es una de: Educar, Vender, Conectar, Aportar.
-Formato es uno de: Reel, Carrusel, Story.
+Los IDs continúan la secuencia {ID_PREFIX}-{max_idea_num+1:03d} en adelante (los pone el motor).
+Cada objeción con el formato "Obj. N — 'miedo textual del cliente'", usando sus palabras reales
+de avatar.md. Función estratégica: Educar, Vender, Conectar o Aportar. Formato: Reel, Carrusel o Story.
+Al menos 3 de las 8 deben ser ideas de lead magnet de conciencia baja (lo más comerciales posible).
 
-TAREA 2 — Calendario de la semana que viene: sigue la estructura fija del creador, NO la cambies:
-día 1 = Reel aporte/técnica, día 2 = secuencia de historias DOLOR (sin guión, solo idea),
-día 3 = Reel dolor/creencia, día 4 = secuencia de historias CASO/TESTIMONIO (sin guión),
-día 5 = Caso de éxito (carrusel; si necesita una prueba real que no tenemos, escribe
-"NEEDS EVIDENCE" en notas y NO inventes números ni testimonios), día 6 = descanso,
-día 7 = Personal/recap. TODO en {IDIOMA_CONTENIDO}: las ideas del banco, los ganchos y los
-guiones (otro idioma = respuesta inválida). Para cada pieza (no las de historias/descanso)
-escribe gancho y guión con la voz del creador, siguiendo el REELS WRITING SYSTEM:
-- Guión = palabra hablada a cámara, entre 80 y 150 palabras (menos de 80 = inválido;
-  hasta 200 si es tip-stack). Cada línea = UNA frase hablada, separadas con \\n.
-- Estructura con etiquetas: línea 1 "[PATRÓN · ToF/MoF/BoF]", luego "[HOOK]" y el gancho
-  hablado, "[BODY]" y el desarrollo (el error concreto, por qué pasa, qué hacer en su
-  lugar — SIEMPRE con números, kilos, semanas o ejercicios concretos), "[CTA]" y UNA
-  sola llamada: por defecto "Comment {CTA_KEYWORD} and I'll send you ..." (BoF: link in bio).
-- Patrones permitidos: {PERFIL['patrones_probados']} — y cada guión de la semana usa un
-  patrón DIFERENTE (nada de repetir
-  Myth-Bust en todos). NO uses Vulnerable Origin Story ni Live Sales Roleplay
-  (no hay historias/objeciones reales cargadas — nunca se inventan).
-- Cada guión trata un tema distinto con SU PROPIA receta técnica (ejercicio, porcentajes,
-  progresión o error diferentes) y su propia promesa en la CTA. Repetir la misma receta
-  o frase en dos guiones = respuesta inválida.
-- Día 5 (caso de éxito) y día 7 (personal): NO inventes historias, números de clientes
-  ni anécdotas. TODA cifra de resultado va entre corchetes, incluidos los kilos y las
-  semanas: se escribe "[CLIENT NAME] added [X] kg in [N] weeks", NUNCA "added 15 kg in
-  12 weeks". Un número de resultado sin corchetes en estas piezas = respuesta inválida.
-  Escribe el guión con huecos [IN BRACKETS] para que el creador meta lo real y pon
-  necesita_evidencia: true. El día 7 es recap/personal: resume las lecciones de la
-  semana en la voz del creador, con huecos [IN BRACKETS] para sus detalles personales.
-- No garantices resultados con cifra ("you'll add 12 kg in 12 weeks" PROHIBIDO):
-  formula objetivos como rango realista o como aquello a lo que apunta el método.
-- No cites estadísticas ni estudios inventados ("the data shows X%", "research says"
-  PROHIBIDO): argumenta con mecanismos y experiencia de coaching, no con datos falsos.
-  Los números válidos son los del método (pasos, porcentajes, series, tiempos, semanas).
-- En "calendario", el campo "idea" es el TÍTULO en inglés de la pieza (texto, nunca
-  un ID tipo {ID_PREFIX}-###).
+TAREA 2 — Calendario de la semana que viene. Estructura FIJA (no la cambies), 6 piezas:
+{estructura}
+(Las secuencias de historias de los días 3 y 6 y el descanso del día 7 los pone el motor:
+NO los incluyas.) Devuelve exactamente 6 piezas, dia_num 1 a 6, cada una con su objetivo
+según la estructura.
 
-EJEMPLO de guión válido — SOLO para copiar el FORMATO y el nivel de detalle. PROHIBIDO
-reutilizar sus frases, su receta (80%/2.5 kg) o su tema en tu respuesta:
-[Myth-Bust Dialogue · ToF]\\n[HOOK]\\nStop maxing out every Friday. It's why your bench
-is stuck.\\n[BODY]\\nLet's be real.\\nTesting your 1RM every week feels like training.\\nIt
-isn't. It's just checking.\\nYou don't get stronger by checking.\\nHere's what actually
-moves your bench: three to five reps at around 80 percent, adding 2.5 kg only when every
-rep is clean.\\nBoring? Maybe.\\nBut boring is what takes a 100 kg bench to 120.\\nTesting
-just tells you you're still at 100.\\n[CTA]\\nComment {CTA_KEYWORD} and I'll send you the exact
-progression.\\nON-SCREEN: Testing is not training.
+Para cada pieza escribe título y guion con la voz de Diego siguiendo writing-system.md:
+- Guion = palabra hablada a cámara, entre 80 y 150 palabras (menos de 80 = inválido; hasta 200
+  si es lista táctica). Cada línea = UNA frase hablada, separadas con \\n.
+- Etiquetas: línea 1 "[PATRÓN · ToF/MoF/BoF]", luego "[HOOK]" y el gancho hablado, "[BODY]" y el
+  desarrollo (el error concreto, por qué pasa fisiológicamente, qué hacer en su lugar, con
+  detalles concretos), "[CTA]" y UNA sola llamada. Añade "TEXTO EN PANTALLA: ..." al final.
+- Lead magnets (días 1 y 4): ToF, gancho de post cebo, CTA "Comenta [PALABRA] y te lo mando".
+  Usa preferentemente un recurso que YA exista en recursos_cta.md (recurso_nuevo: false). Si
+  propones uno nuevo, inventa una palabra clave corta y clara y pon recurso_nuevo: true.
+- Educativos (días 2 y 5): MoF, temas distintos entre sí; CTA con la palabra de un recurso
+  relacionado o PRIME si encaja mejor.
+- Venta (días 3 y 6): BoF, CTA "Comenta PRIME" (le llega un test con unas preguntas y luego
+  WhatsApp). Sin sermones del tipo "si buscas un atajo no es para ti": el compromiso se da por hecho.
+  Testimonios: NO inventes historias, nombres, números ni frases de clientes. Escribe huecos
+  [ENTRE CORCHETES] (ej. "[NOMBRE], [EDAD] años, [PROFESIÓN]: de [X] a [Y] en [N] semanas") y pon
+  necesita_evidencia: true. Las frases literales de avatar.md sí se pueden citar tal cual.
+- palabra_clave = la palabra exacta que se pide comentar en la CTA.
+- Cada guion usa un patrón DIFERENTE de esta lista: {P['patrones_probados']}. NO uses Historia
+  de origen vulnerable (no hay historias reales cargadas).
+- Cada guion trata un tema distinto con su propia explicación y su propia promesa en la CTA.
+  Repetir la misma idea o frase en dos guiones = respuesta inválida.
+- En "calendario", el campo "idea" es el TÍTULO de la pieza en {IDIOMA_CONTENIDO} (nunca un ID).
 
-Aplica lo que mejor rindió arriba. Guía completa: reels-writing-system.md.
+EJEMPLO de guion válido — SOLO para copiar el FORMATO y el nivel de detalle. PROHIBIDO
+reutilizar sus frases, su tema (pasos diarios) o su estructura de argumento:
+[Lista de contraste · MoF]\\n[HOOK]\\nNo te falta gimnasio. Te faltan pasos.\\n[BODY]\\nLa mayoría piensa
+que el problema es entrenar poco.\\nEntrenas una hora.\\nY pasas once sentado entre el coche, la oficina
+y el sofá.\\nEsa hora no compensa las otras once.\\nLo que ocurre realmente es que tu gasto diario cae
+sin que te des cuenta.\\nY la grasa sube aunque comas igual.\\nNo hace falta más intensidad.\\nHace falta
+moverse más fuera del gimnasio.\\nLlamadas de pie.\\nAparcar lejos.\\nDiez minutos andando después de
+comer.\\nLo veo cada semana en mis clientes: suben los pasos y la báscula empieza a moverse sola.\\n[CTA]
+\\nComenta Entreno y te mando cómo lo organizo.\\nTEXTO EN PANTALLA: Una hora no compensa once.
+
+Aplica lo que mejor rindió arriba.
 
 Responde con este JSON exacto:
 {{
   "ideas": [
-    {{"idea": "...", "objecion": "...", "funcion": "...", "formato": "...", "plataforma": "..."}}
+    {{"idea": "...", "objecion": "...", "funcion": "...", "formato": "...", "plataforma": "Instagram"}}
   ],
   "calendario": [
     {{"dia_num": 1, "idea": "...", "objetivo": "...", "angulo": "...", "formato": "...",
-      "guion": "...", "necesita_evidencia": false}}
+      "guion": "...", "palabra_clave": "...", "recurso_nuevo": false, "necesita_evidencia": false}}
   ]
 }}"""
     return system, user
@@ -773,6 +881,18 @@ def paso4_generacion(analisis):
 # ---------------------------------------------------------------------------
 # Paso 5: ESCRITURA (solo si el paso 4 produjo contenido)
 # ---------------------------------------------------------------------------
+# Verbos en español (e inglés, por si acaso) seguidos de una cifra de kilos o porcentaje.
+RESULTADO_SIN_CORCHETES = re.compile(
+    r"\b(baj[oóéa]|bajado|perd[ií][oó]?|perdido|gan[oóéa]|ganado|sub[ií][oó]?|subido|"
+    r"quit[oóé]|quitado|added|gained|lost|dropped)\s+(?:de\s+)?\d+(?:[.,]\d+)?\s*"
+    r"(kg|kgs|kilos|%)", re.I)
+
+
+def _es_palabra_conocida(palabra):
+    p = _sin_acentos(palabra)
+    return any(_sin_acentos(k) == p for k in LEAD_KEYWORDS)
+
+
 def paso5_escritura(svc, generado, max_idea_num, ultima_fila_cal, ultimo_dia_num):
     log("PASO 5/5 — escribiendo ideas y calendario nuevos…")
 
@@ -794,27 +914,35 @@ def paso5_escritura(svc, generado, max_idea_num, ultima_fila_cal, ultimo_dia_num
     for offset in range(1, 8):  # semana completa: 7 días, estructura fija del creador
         dia_num += 1
         etiqueta = f"{DIAS_SEMANA[(dia_num - 1) % 7]}-{dia_num}"
-        if offset == 2:
-            filas_cal.append([etiqueta, "Secuencia de historias · DOLOR", "Conectar",
-                               "Problema", "Story", "", "", "Propuesta IA", "", "", "", "", "", "Historias"])
-        elif offset == 4:
-            filas_cal.append([etiqueta, "Secuencia de historias · CASO/TESTIMONIO", "Vender",
-                               "Prueba Social", "Story", "", "", "Propuesta IA", "", "", "", "", "", "Historias"])
-        elif offset == 6:
+        if offset == DIA_DESCANSO:
             filas_cal.append([etiqueta, "—", "", "", "", "", "", "Propuesta IA", "", "", "", "", "", "Descanso"])
-        else:
-            p = piezas.get(offset, {})
-            notas = "NEEDS EVIDENCE — datos y consentimiento reales" if p.get("necesita_evidencia") else ""
-            # Red de seguridad: si el guión afirma un resultado con cifra sin corchetes,
-            # se marca para revisión en vez de colarse como si fuera un caso real.
-            if not notas and re.search(r"\b(added|gained|lost|dropped|put on)\s+\d+\s*(kg|kgs|lb|lbs|%)",
-                                       p.get("guion", ""), re.I):
-                notas = "REVISAR — cifra de resultado sin corchetes; confirmar que es real"
-            filas_cal.append([
-                etiqueta, p.get("idea", ""), p.get("objetivo", ""), p.get("angulo", ""),
-                p.get("formato", ""), "", p.get("guion", ""), "Propuesta IA",
-                "", "", "", "", notas, "Pieza",
-            ])
+            continue
+
+        p = piezas.get(offset, {})
+        guion = (p.get("guion") or "").replace("\\n", "\n")  # \n literal -> salto de línea real
+        notas = []
+        if p.get("necesita_evidencia"):
+            notas.append("NEEDS EVIDENCE — datos y consentimiento reales")
+        # Red de seguridad: si el guión afirma un resultado con cifra sin corchetes,
+        # se marca para revisión en vez de colarse como si fuera un caso real.
+        if not notas and RESULTADO_SIN_CORCHETES.search(guion):
+            notas.append("REVISAR — cifra de resultado sin corchetes; confirmar que es real")
+        palabra = (p.get("palabra_clave") or "").strip()
+        if palabra:
+            if p.get("recurso_nuevo") or not _es_palabra_conocida(palabra):
+                notas.append(f"CTA: {palabra} · RECURSO NUEVO — crear el recurso y añadir la "
+                             f"palabra a recursos_cta.md y LEAD_KEYWORDS")
+            else:
+                notas.append(f"CTA: {palabra}")
+        filas_cal.append([
+            etiqueta, p.get("idea", ""), p.get("objetivo", ""), p.get("angulo", ""),
+            p.get("formato", ""), "", guion, "Propuesta IA",
+            "", "", "", "", " · ".join(notas), "Pieza",
+        ])
+        if offset in DIAS_HISTORIAS:
+            filas_cal.append([etiqueta, "Secuencia de historias · VENTA (caso / testimonio → PRIME)",
+                              "Vender", "Prueba Social", "Story", "", "", "Propuesta IA",
+                              "", "", "", "", "", "Historias"])
     append_rows(svc, CAL_SHEET_ID, f"{CAL_TAB}!A:N", filas_cal)
     log(f"  {len(filas_cal)} filas nuevas añadidas al Calendario, todas con Estado = 'Propuesta IA'")
 
@@ -841,6 +969,7 @@ def main():
 
     try:
         svc = sheets_client()
+        resolver_pestanas(svc)
     except Exception as e:
         log(f"no pude conectar con Google Sheets ({e}); abortando esta corrida sin marcarla como OK")
         return
@@ -869,7 +998,14 @@ def main():
         pass
 
     ultima_fila_cal = len(filas_cal) if filas_cal else 1
-    ultimo_dia_num = (ultima_fila_cal - 1) if ultima_fila_cal > 1 else 0  # fila1=cabecera
+    # El nº de día sale de las etiquetas de la columna A ("mié-10" -> 10), no del nº de
+    # filas: los días con historias ocupan dos filas.
+    nums_dia = [int(m.group(1)) for fila in (filas_cal or [])[1:]
+                for m in [re.search(r"-(\d+)$", (fila[0] if fila else "").strip())] if m]
+    ultimo_dia_num = max(nums_dia) if nums_dia else 0
+    # La semana nueva siempre empieza en lunes (día 1 = lead magnet), aunque se hayan
+    # añadido días sueltos a mano: se redondea al siguiente múltiplo de 7.
+    ultimo_dia_num = -(-ultimo_dia_num // 7) * 7
 
     generado = paso4_generacion(analisis)
     if generado:

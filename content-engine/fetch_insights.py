@@ -15,7 +15,7 @@ sin avisar, y las disponibles varían según el tipo de publicación. El script 
 lo que espera, ignora lo que la API rechace, y deja constancia de qué faltó — es
 preferible a que reviente entero por una métrica retirada.
 """
-import argparse, json, pathlib, sys, time
+import argparse, json, pathlib, re, sys, time, unicodedata
 from urllib.parse import urlencode
 from urllib.request import urlopen
 from urllib.error import HTTPError, URLError
@@ -120,7 +120,7 @@ def get_ig_long_token(c):
 
     short = c.get("ig_user_token")
     if not short:
-        sys.exit("Falta 'ig_user_token' en las credenciales — ejecuta save_ig_token.py.")
+        sys.exit("Falta 'ig_user_token' en las credenciales — ejecuta save_token.py.")
 
     # El token que genera el panel de Meta ("Generar identificador") ya es de larga
     # duración, así que NO se canjea con ig_exchange_token (da "Session key invalid").
@@ -230,9 +230,17 @@ def keyword_hits(media_id, token, keywords):
         cs = api(f"{media_id}/comments", token, fields="text", limit=200).get("data", [])
     except RuntimeError:
         return 0, ""
+    # Palabra completa, sin mayúsculas ni acentos: "IA" no debe contar "energía",
+    # y "sueno" sí cuenta como "Sueño".
+    patrones = [re.compile(rf"\b{re.escape(_norm(k))}\b") for k in keywords]
     hits = [c["text"] for c in cs
-            if any(k.lower() in c.get("text", "").lower() for k in keywords)]
+            if any(p.search(_norm(c.get("text", ""))) for p in patrones)]
     return len(hits), " | ".join(hits[:3])
+
+
+def _norm(txt):
+    txt = unicodedata.normalize("NFKD", str(txt or "").lower())
+    return "".join(ch for ch in txt if not unicodedata.combining(ch))
 
 
 def main():
