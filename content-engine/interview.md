@@ -41,3 +41,5 @@ Fuente de verdad para el CONFIG del motor y los documentos cerebro.
    - Permitido: algún trend de moda, adaptado a la voz.
 
 9. **Guía de guiones:** no tiene patrón fijo → usar el writing-system.md por defecto del motor, personalizado con su voz.
+
+10. **Fecha base:** 2026-10-01. Todo lo publicado antes se ignora.
