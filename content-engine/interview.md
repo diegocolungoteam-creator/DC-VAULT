@@ -32,3 +32,10 @@ Fuente de verdad para el CONFIG del motor y los documentos cerebro.
 7. **Voz:** cubierta en `avatar/Avatar_cliente_ideal.md` (directa, masculina, racional, sin humo, porqué fisiológico,
    "No soy influencer. Soy entrenador."). Tacos: puntuales, solo en ganchos (ej. "te sentiste como una mierda").
    Tratamiento: cercano y sobrio, máximo "tío". Sin exceso de emojis.
+
+8. **Contenido prohibido:**
+   - Vender la química como rapidez, atajo o algo inocuo.
+   - Sustancias (TRT, péptidos, compuestos): siempre desde la información, NUNCA como recomendación
+     (sin dosis, sin protocolos, sin proveedores, sin "tómate X"). → guardarraíl también en el prompt del LLM.
+   - Vender atajos / "ciclos rápidos". Hablar como influencer fitness.
+   - Permitido: algún trend de moda, adaptado a la voz.
