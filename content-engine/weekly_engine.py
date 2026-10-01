@@ -767,7 +767,13 @@ Para cada pieza escribe título y guion con la voz de Diego siguiendo writing-sy
   WhatsApp). Sin sermones del tipo "si buscas un atajo no es para ti": el compromiso se da por hecho.
   Testimonios: NO inventes historias, nombres, números ni frases de clientes. Escribe huecos
   [ENTRE CORCHETES] (ej. "[NOMBRE], [EDAD] años, [PROFESIÓN]: de [X] a [Y] en [N] semanas") y pon
-  necesita_evidencia: true. Las frases literales de avatar.md sí se pueden citar tal cual.
+  necesita_evidencia: true. Las frases literales de avatar.md sí se pueden citar tal cual, pero
+  NUNCA juntes frases de clientes distintos como si fueran de una sola persona ni las conviertas
+  en la historia de "un cliente": atribúyelas en plural ("varios clientes me han dicho...") o deja
+  la historia entera en [HUECOS] para que Diego meta un caso real.
+- La palabra del recurso tiene que corresponder al CONTENIDO de ese recurso según
+  recursos_cta.md (no uses "Entreno" para hablar de la báscula si el recurso trata de otra cosa).
+  Si ningún recurso existente encaja con el tema, propone uno nuevo (recurso_nuevo: true).
 - palabra_clave = la palabra exacta que se pide comentar en la CTA.
 - Cada guion usa un patrón DIFERENTE de esta lista: {P['patrones_probados']}. NO uses Historia
   de origen vulnerable (no hay historias reales cargadas).
