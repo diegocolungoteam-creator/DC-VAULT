@@ -43,3 +43,7 @@ Fuente de verdad para el CONFIG del motor y los documentos cerebro.
 9. **Guía de guiones:** no tiene patrón fijo → usar el writing-system.md por defecto del motor, personalizado con su voz.
 
 10. **Fecha base:** 2026-10-01. Todo lo publicado antes se ignora.
+
+## Notas
+- 2026-10-01: Diego publica hoy "mi método" con CTA PRIME. Embudo PRIME: test con preguntas → enlace a WhatsApp.
+  Será la primera pieza tras la fecha base; entra como pieza fuera de calendario ("off-plan") y se analiza igual.
