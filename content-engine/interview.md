@@ -56,3 +56,5 @@ Fuente de verdad para el CONFIG del motor y los documentos cerebro.
 - Pestañas: creadas por conversión CSV; el código resuelve la primera pestaña por API (o renombrar a Calendario / Ideas).
 - Cuenta de servicio (proyecto nuevo motor-contenido-510310): motor-contenido@motor-contenido-510310.iam.gserviceaccount.com
   - Compartida como Editor en la carpeta Contenido (verificado). JSON de la clave en Descargas del Mac (no en el repo).
+- Credibilidad: "lo veo cada semana en mis clientes". Filtro antes de PRIME: no explícito, el compromiso se da por hecho.
+- Palabras clave de recursos: ver recursos_cta.md (de la hoja "CTA DC TEAM").

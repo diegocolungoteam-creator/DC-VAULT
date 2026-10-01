@@ -34,8 +34,8 @@
   palabra clave de ese recurso: "Comenta [PALABRA] y te lo mando."
 - MoF (educativos): nutrir. CTA = palabra clave hacia recurso o conversación.
 - BoF (testimonios, entrenador ausente, el método): acción del seguidor caliente. CTA = "Comenta PRIME"
-  (le llega un test con unas preguntas y después el enlace a WhatsApp), con un filtro de comprador
-  ("si de verdad quieres hacerlo bien, no buscas un atajo…").
+  (le llega un test con unas preguntas y después el enlace a WhatsApp). Sin filtro explícito tipo "si buscas
+  un atajo no es para ti": el compromiso se da por hecho en el tono, no se sermonea.
 - UNA sola CTA por guion, acorde a la fase.
 
 ## Reglas de sustancias (no negociables)
@@ -61,6 +61,6 @@
 - Prohibidas: milagro, transformación garantizada, hacks, secreto, método revolucionario, motivación, mindset,
   jefe, socio, crack. Pocos emojis.
 - Tacos: solo puntuales y en el gancho.
-- Puente de credibilidad: una línea ("lo veo cada semana en las revisiones"), nunca el tema.
+- Puente de credibilidad: una línea ("lo veo cada semana en mis clientes"), nunca el tema.
 - Patrones probados con datos: ninguno todavía (fecha base 2026-10-01). Sin probar (máximo 1 por semana): todos.
-- Palabra clave oficial: PRIME. Lead magnets: la palabra del recurso.
+- Palabra clave oficial: PRIME. Lead magnets: la palabra del recurso (ver recursos_cta.md).

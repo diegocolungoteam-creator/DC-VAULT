@@ -44,8 +44,7 @@ Regla de oro: mucho alcance y cero leads = entretenimiento. Alcance medio con le
 - Palabras suyas: sistema, protocolo, estructura, adherencia, progreso, evidencia, salud, rendimiento,
   optimización, seguimiento, control, ejecución.
 - Cliente ideal: ver avatar.md.
-- Credibilidad: una línea de puente ("llevo años viendo estos casos", "lo veo cada semana en las revisiones"),
-  nunca el tema.
+- Credibilidad: una línea de puente ("lo veo cada semana en mis clientes"), nunca el tema.
 
 ## Reglas de guion
 Todo guion generado sigue writing-system.md.
