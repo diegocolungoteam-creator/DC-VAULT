@@ -37,13 +37,15 @@ chmod 600 ~/.config/gcloud/content-engine-sa.json
 
 ## 4. Clave de Anthropic
 
-Este comando te pide la clave sin mostrarla en pantalla:
+Este comando (zsh, la terminal por defecto del Mac) te pide la clave sin mostrarla en pantalla.
+Al pegarla no verás nada: es normal. Pega y pulsa Enter.
 
 ```bash
 mkdir -p ~/.config/content-engine
-read -s -p "Pega la clave de Anthropic y pulsa Enter: " K; echo
+read -s "K?Pega la clave de Anthropic y pulsa Enter: "; echo
 printf 'ANTHROPIC_API_KEY=%s\n' "$K" > ~/.config/content-engine/.env; unset K
 chmod 600 ~/.config/content-engine/.env
+cut -c1-25 ~/.config/content-engine/.env   # debe salir ANTHROPIC_API_KEY=sk-ant-
 ```
 
 ## 5. Token de Instagram
