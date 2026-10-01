@@ -54,3 +54,5 @@ Fuente de verdad para el CONFIG del motor y los documentos cerebro.
 - Calendario de Contenido (14 cols A-N): 1DEsUSpuafX8_GETJiGS3OUgMrXljkk0Gb8zA1zduNIE
 - Banco de ideas (6 cols A-F): 1PVyoCln5R9BbuhuqSKbgXNOUuxlXeKJtLmz7TFl1MF4
 - Pestañas: creadas por conversión CSV; el código resuelve la primera pestaña por API (o renombrar a Calendario / Ideas).
+- Cuenta de servicio (proyecto nuevo motor-contenido-510310): motor-contenido@motor-contenido-510310.iam.gserviceaccount.com
+  - Compartida como Editor en la carpeta Contenido (verificado). JSON de la clave en Descargas del Mac (no en el repo).
