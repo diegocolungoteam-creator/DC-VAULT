@@ -327,6 +327,8 @@ export function getMarketingStats(opts: { from: string; to: string }) {
     })
     .sort((a, b) => b.amount - a.amount);
 
+  const totalNewClients = bySource.reduce((s, b) => s + b.clientCount, 0);
+
   return {
     totalSpend,
     totalLeads,
@@ -335,6 +337,8 @@ export function getMarketingStats(opts: { from: string; to: string }) {
     costPerLead: totalLeads > 0 ? totalSpend / totalLeads : null,
     costPerCall: totalCalls > 0 ? totalSpend / totalCalls : null,
     costPerClose: totalCloses > 0 ? totalSpend / totalCloses : null,
+    totalNewClients,
+    cac: totalNewClients > 0 ? totalSpend / totalNewClients : null,
     bySource,
   };
 }
@@ -415,6 +419,65 @@ export function getOverduePendingBefore(dateISO: string) {
        ORDER BY r.scheduled_date ASC`
     )
     .all(dateISO) as unknown as (Revision & { client_name: string })[];
+}
+
+// ---------- Business KPIs (MRR, LTV, ticket medio...) ----------
+
+export interface BusinessKPIs {
+  mrr: number;
+  activeWithFee: number;
+  avgTicket: number;
+  ltv: number;
+  payingClients: number;
+  renewersPct: number;
+}
+
+const CYCLE_MONTHS: Record<string, number> = { mensual: 1, trimestral: 3, semestral: 6, anual: 12 };
+
+export function getBusinessKPIs(): BusinessKPIs {
+  const db = getDb();
+
+  // Use each active client's most recent payment (not the cumulative "fee" field,
+  // which can be a multi-cycle total for repeat clients) normalized to a monthly
+  // amount by their billing cycle, to approximate true recurring revenue.
+  const activeClients = db
+    .prepare(
+      `SELECT c.billing_cycle as billing_cycle, p.amount as last_amount
+       FROM clients c
+       JOIN payments p ON p.id = (
+         SELECT id FROM payments WHERE client_id = c.id ORDER BY date DESC, id DESC LIMIT 1
+       )
+       WHERE c.status = 'activo'`
+    )
+    .all() as { billing_cycle: string; last_amount: number }[];
+
+  const mrr = activeClients.reduce((sum, c) => sum + c.last_amount / (CYCLE_MONTHS[c.billing_cycle] ?? 1), 0);
+  const avgTicket = activeClients.length > 0 ? mrr / activeClients.length : 0;
+
+  const ltvRow = db
+    .prepare(
+      `SELECT AVG(total) as avg_ltv, COUNT(*) as n FROM (
+         SELECT client_id, SUM(amount) as total FROM payments GROUP BY client_id
+       )`
+    )
+    .get() as { avg_ltv: number | null; n: number };
+
+  const renewRow = db
+    .prepare(
+      `SELECT COUNT(*) as total_paying, SUM(CASE WHEN cnt > 1 THEN 1 ELSE 0 END) as renewers FROM (
+         SELECT client_id, COUNT(*) as cnt FROM payments GROUP BY client_id
+       )`
+    )
+    .get() as { total_paying: number; renewers: number | null };
+
+  return {
+    mrr,
+    activeWithFee: activeClients.length,
+    avgTicket,
+    ltv: ltvRow.avg_ltv ?? 0,
+    payingClients: ltvRow.n,
+    renewersPct: renewRow.total_paying > 0 ? ((renewRow.renewers ?? 0) / renewRow.total_paying) * 100 : 0,
+  };
 }
 
 export function getLastRevisionByClient(): Map<number, string> {

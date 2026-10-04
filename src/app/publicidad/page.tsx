@@ -71,6 +71,12 @@ export default async function PublicidadPage({
           label="Coste / cierre"
           value={stats.costPerClose != null ? formatCurrencyEs(stats.costPerClose) : "—"}
         />
+        <StatCard
+          label="CAC (coste / cliente nuevo)"
+          value={stats.cac != null ? formatCurrencyEs(stats.cac) : "—"}
+          hint={`${stats.totalNewClients} clientes nuevos en el periodo`}
+          tone="warning"
+        />
       </div>
 
       <div className="card p-4">

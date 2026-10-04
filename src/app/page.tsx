@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getDashboardStats } from "@/lib/queries";
+import { getBusinessKPIs, getDashboardStats } from "@/lib/queries";
 import { StatCard } from "@/components/StatCard";
 import { formatCurrencyEs, formatDateEs } from "@/lib/dates";
 import { REVISION_ALERT_THRESHOLD_DAYS } from "@/lib/types";
@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const stats = getDashboardStats();
+  const kpis = getBusinessKPIs();
 
   return (
     <div className="flex flex-col gap-6">
@@ -50,6 +51,29 @@ export default async function DashboardPage() {
           value={formatCurrencyEs(stats.monthBalance)}
           tone={stats.monthBalance >= 0 ? "success" : "danger"}
         />
+      </div>
+
+      <div>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-medium">Métricas del negocio</h2>
+          <Link href="/contabilidad" className="text-xs text-[var(--accent)]">
+            Ver histórico completo
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <StatCard
+            label="MRR"
+            value={formatCurrencyEs(kpis.mrr)}
+            hint={`${kpis.activeWithFee} clientes activos con cuota`}
+          />
+          <StatCard label="Ticket medio (activos)" value={formatCurrencyEs(kpis.avgTicket)} />
+          <StatCard
+            label="LTV medio cobrado"
+            value={formatCurrencyEs(kpis.ltv)}
+            hint={`${kpis.payingClients} clientes con pagos`}
+          />
+          <StatCard label="% clientes que renuevan" value={`${kpis.renewersPct.toFixed(1)}%`} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
