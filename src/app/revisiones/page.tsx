@@ -5,23 +5,38 @@ import {
   deleteRevisionAction,
   markRevisionDoneAction,
 } from "@/lib/actions";
-import { getRevisionAlerts, listClients, listRevisions } from "@/lib/queries";
+import {
+  getOverduePendingBefore,
+  getRevisionAlerts,
+  getRevisionsInRange,
+  listClients,
+  listRevisions,
+} from "@/lib/queries";
 import { RevisionStatusBadge } from "@/components/Badges";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { SheetCheckinSyncButton } from "@/components/SheetCheckinSyncButton";
-import { formatDateEs, todayISO } from "@/lib/dates";
-import { REVISION_ALERT_THRESHOLD_DAYS, type RevisionStatus } from "@/lib/types";
+import {
+  addDays,
+  formatDateEs,
+  formatDayShortEs,
+  startOfWeekISO,
+  todayISO,
+  weekdayEs,
+} from "@/lib/dates";
+import { REVISION_ALERT_THRESHOLD_DAYS, type Revision, type RevisionStatus } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+const TIMELINE_DAYS = 14;
 
 export default async function RevisionesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; vista?: string; inicio?: string }>;
 }) {
   const params = await searchParams;
   const status = (params.status as RevisionStatus | undefined) || undefined;
-  const revisions = listRevisions({ status });
+  const vista = params.vista === "linea" ? "linea" : "lista";
   const clients = listClients({ status: "activo" });
   const alerts = getRevisionAlerts(REVISION_ALERT_THRESHOLD_DAYS);
   const today = todayISO();
@@ -96,81 +111,237 @@ export default async function RevisionesPage({
         </form>
       </div>
 
-      <div className="flex gap-2 text-sm">
-        <Link href="/revisiones" className={`btn ${!status ? "btn-primary" : "btn-secondary"}`}>
-          Todas
-        </Link>
-        <Link href="/revisiones?status=pendiente" className={`btn ${status === "pendiente" ? "btn-primary" : "btn-secondary"}`}>
-          Pendientes
-        </Link>
-        <Link href="/revisiones?status=realizada" className={`btn ${status === "realizada" ? "btn-primary" : "btn-secondary"}`}>
-          Realizadas
-        </Link>
-        <Link href="/revisiones?status=cancelada" className={`btn ${status === "cancelada" ? "btn-primary" : "btn-secondary"}`}>
-          Canceladas
-        </Link>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex gap-2 text-sm">
+          <Link
+            href={{ pathname: "/revisiones", query: { vista: "lista" } }}
+            className={`btn ${vista === "lista" ? "btn-primary" : "btn-secondary"}`}
+          >
+            Lista
+          </Link>
+          <Link
+            href={{ pathname: "/revisiones", query: { vista: "linea" } }}
+            className={`btn ${vista === "linea" ? "btn-primary" : "btn-secondary"}`}
+          >
+            Línea temporal
+          </Link>
+        </div>
+
+        {vista === "lista" && (
+          <div className="flex gap-2 text-sm">
+            <Link href="/revisiones" className={`btn ${!status ? "btn-primary" : "btn-secondary"}`}>
+              Todas
+            </Link>
+            <Link href="/revisiones?status=pendiente" className={`btn ${status === "pendiente" ? "btn-primary" : "btn-secondary"}`}>
+              Pendientes
+            </Link>
+            <Link href="/revisiones?status=realizada" className={`btn ${status === "realizada" ? "btn-primary" : "btn-secondary"}`}>
+              Realizadas
+            </Link>
+            <Link href="/revisiones?status=cancelada" className={`btn ${status === "cancelada" ? "btn-primary" : "btn-secondary"}`}>
+              Canceladas
+            </Link>
+          </div>
+        )}
       </div>
 
-      <div className="card overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-[var(--border)] text-left text-xs text-[var(--muted)]">
-              <th className="px-4 py-3 font-medium">Fecha</th>
-              <th className="px-4 py-3 font-medium">Cliente</th>
-              <th className="px-4 py-3 font-medium">Estado</th>
-              <th className="px-4 py-3 font-medium">Notas</th>
-              <th className="px-4 py-3 font-medium"></th>
+      {vista === "linea" ? (
+        <RevisionTimeline inicio={params.inicio} today={today} />
+      ) : (
+        <RevisionList status={status} today={today} />
+      )}
+    </div>
+  );
+}
+
+function RevisionActions({ r }: { r: Revision & { client_name: string } }) {
+  return (
+    <div className="flex items-center justify-end gap-2">
+      {r.status === "pendiente" && (
+        <>
+          <form action={markRevisionDoneAction.bind(null, r.id, r.client_id)}>
+            <button type="submit" className="text-xs text-[var(--success)]">
+              Marcar hecha
+            </button>
+          </form>
+          <form action={cancelRevisionAction.bind(null, r.id, r.client_id)}>
+            <button type="submit" className="text-xs text-[var(--muted)]">
+              Cancelar
+            </button>
+          </form>
+        </>
+      )}
+      <form action={deleteRevisionAction.bind(null, r.id, r.client_id)}>
+        <ConfirmButton className="text-xs text-[var(--danger)]" confirmMessage="¿Eliminar esta revisión?">
+          Eliminar
+        </ConfirmButton>
+      </form>
+    </div>
+  );
+}
+
+async function RevisionList({ status, today }: { status: RevisionStatus | undefined; today: string }) {
+  const revisions = listRevisions({ status });
+  return (
+    <div className="card overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-[var(--border)] text-left text-xs text-[var(--muted)]">
+            <th className="px-4 py-3 font-medium">Fecha</th>
+            <th className="px-4 py-3 font-medium">Cliente</th>
+            <th className="px-4 py-3 font-medium">Estado</th>
+            <th className="px-4 py-3 font-medium">Notas</th>
+            <th className="px-4 py-3 font-medium"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {revisions.map((r) => (
+            <tr key={r.id} className="border-b border-[var(--border)] last:border-0">
+              <td className={`px-4 py-3 ${r.status === "pendiente" && r.scheduled_date < today ? "text-[var(--danger)] font-medium" : ""}`}>
+                {formatDateEs(r.scheduled_date)}
+              </td>
+              <td className="px-4 py-3">
+                <Link href={`/clientes/${r.client_id}`} className="hover:underline">
+                  {r.client_name}
+                </Link>
+              </td>
+              <td className="px-4 py-3">
+                <RevisionStatusBadge status={r.status} />
+              </td>
+              <td className="px-4 py-3">{r.notes ?? "—"}</td>
+              <td className="px-4 py-3">
+                <RevisionActions r={r} />
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {revisions.map((r) => (
-              <tr key={r.id} className="border-b border-[var(--border)] last:border-0">
-                <td className={`px-4 py-3 ${r.status === "pendiente" && r.scheduled_date < today ? "text-[var(--danger)] font-medium" : ""}`}>
-                  {formatDateEs(r.scheduled_date)}
-                </td>
-                <td className="px-4 py-3">
+          ))}
+          {revisions.length === 0 && (
+            <tr>
+              <td colSpan={5} className="px-4 py-8 text-center text-[var(--muted)]">
+                No hay revisiones.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+async function RevisionTimeline({ inicio, today }: { inicio: string | undefined; today: string }) {
+  const weekStart = startOfWeekISO(inicio && /^\d{4}-\d{2}-\d{2}$/.test(inicio) ? inicio : today);
+  const rangeEnd = addDays(weekStart, TIMELINE_DAYS - 1);
+  const revisions = getRevisionsInRange(weekStart, rangeEnd);
+  const overdue = getOverduePendingBefore(weekStart < today ? weekStart : today);
+
+  const byDay = new Map<string, (Revision & { client_name: string })[]>();
+  for (const r of revisions) {
+    const list = byDay.get(r.scheduled_date) ?? [];
+    list.push(r);
+    byDay.set(r.scheduled_date, list);
+  }
+
+  const days = Array.from({ length: TIMELINE_DAYS }, (_, i) => addDays(weekStart, i));
+  const prevStart = addDays(weekStart, -7);
+  const nextStart = addDays(weekStart, 7);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex gap-2 text-sm">
+          <Link
+            href={{ pathname: "/revisiones", query: { vista: "linea", inicio: prevStart } }}
+            className="btn btn-secondary"
+          >
+            ← Semana anterior
+          </Link>
+          <Link href={{ pathname: "/revisiones", query: { vista: "linea" } }} className="btn btn-secondary">
+            Hoy
+          </Link>
+          <Link
+            href={{ pathname: "/revisiones", query: { vista: "linea", inicio: nextStart } }}
+            className="btn btn-secondary"
+          >
+            Semana siguiente →
+          </Link>
+        </div>
+        <p className="text-xs text-[var(--muted)]">
+          {formatDateEs(weekStart)} – {formatDateEs(rangeEnd)}
+        </p>
+      </div>
+
+      {overdue.length > 0 && (
+        <div className="card border-[var(--danger)] p-4">
+          <h2 className="mb-2 text-sm font-medium text-[var(--danger)]">
+            Atrasadas (antes de esta semana, aún sin hacer)
+          </h2>
+          <ul className="flex flex-col divide-y divide-[var(--border)]">
+            {overdue.map((r) => (
+              <li key={r.id} className="flex items-center justify-between gap-2 py-2 text-sm">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-[var(--danger)]">{formatDateEs(r.scheduled_date)}</span>
                   <Link href={`/clientes/${r.client_id}`} className="hover:underline">
                     {r.client_name}
                   </Link>
-                </td>
-                <td className="px-4 py-3">
-                  <RevisionStatusBadge status={r.status} />
-                </td>
-                <td className="px-4 py-3">{r.notes ?? "—"}</td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center justify-end gap-2">
+                </div>
+                <RevisionActions r={r} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-7">
+        {days.map((day) => {
+          const entries = byDay.get(day) ?? [];
+          const isToday = day === today;
+          return (
+            <div
+              key={day}
+              className={`card flex flex-col gap-2 p-3 ${isToday ? "border-[var(--accent)]" : ""}`}
+            >
+              <div className="flex items-baseline justify-between">
+                <span className="text-xs font-medium uppercase text-[var(--muted)]">{weekdayEs(day)}</span>
+                <span className={`text-xs ${isToday ? "font-semibold text-[var(--accent)]" : "text-[var(--muted)]"}`}>
+                  {formatDayShortEs(day)}
+                </span>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                {entries.length === 0 && <p className="text-xs text-[var(--muted)]">—</p>}
+                {entries.map((r) => (
+                  <div
+                    key={r.id}
+                    className={`rounded-md border px-2 py-1.5 text-xs ${
+                      r.status === "pendiente" && day < today
+                        ? "border-[var(--danger)] bg-[var(--danger)]/10"
+                        : "border-[var(--border)]"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-1">
+                      <Link href={`/clientes/${r.client_id}`} className="font-medium hover:underline">
+                        {r.client_name}
+                      </Link>
+                      <RevisionStatusBadge status={r.status} />
+                    </div>
                     {r.status === "pendiente" && (
-                      <>
+                      <div className="mt-1 flex gap-2">
                         <form action={markRevisionDoneAction.bind(null, r.id, r.client_id)}>
-                          <button type="submit" className="text-xs text-[var(--success)]">
-                            Marcar hecha
+                          <button type="submit" className="text-[var(--success)]">
+                            Hecha
                           </button>
                         </form>
                         <form action={cancelRevisionAction.bind(null, r.id, r.client_id)}>
-                          <button type="submit" className="text-xs text-[var(--muted)]">
+                          <button type="submit" className="text-[var(--muted)]">
                             Cancelar
                           </button>
                         </form>
-                      </>
+                      </div>
                     )}
-                    <form action={deleteRevisionAction.bind(null, r.id, r.client_id)}>
-                      <ConfirmButton className="text-xs text-[var(--danger)]" confirmMessage="¿Eliminar esta revisión?">
-                        Eliminar
-                      </ConfirmButton>
-                    </form>
                   </div>
-                </td>
-              </tr>
-            ))}
-            {revisions.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-[var(--muted)]">
-                  No hay revisiones.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

@@ -393,6 +393,30 @@ export function getRecentlyCompletedRevisions(days: number) {
     .all(sinceISO) as unknown as (Revision & { client_name: string })[];
 }
 
+export function getRevisionsInRange(fromISO: string, toISO: string) {
+  const db = getDb();
+  return db
+    .prepare(
+      `SELECT r.*, c.name as client_name FROM revisions r
+       JOIN clients c ON c.id = r.client_id
+       WHERE r.scheduled_date BETWEEN :from AND :to
+       ORDER BY r.scheduled_date ASC`
+    )
+    .all({ from: fromISO, to: toISO }) as unknown as (Revision & { client_name: string })[];
+}
+
+export function getOverduePendingBefore(dateISO: string) {
+  const db = getDb();
+  return db
+    .prepare(
+      `SELECT r.*, c.name as client_name FROM revisions r
+       JOIN clients c ON c.id = r.client_id
+       WHERE r.status = 'pendiente' AND r.scheduled_date < ?
+       ORDER BY r.scheduled_date ASC`
+    )
+    .all(dateISO) as unknown as (Revision & { client_name: string })[];
+}
+
 export function getLastRevisionByClient(): Map<number, string> {
   const db = getDb();
   const rows = db

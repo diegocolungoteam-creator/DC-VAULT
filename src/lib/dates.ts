@@ -37,6 +37,32 @@ export function subtractDays(dateISO: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+export function addDays(dateISO: string, days: number): string {
+  const d = new Date(dateISO + "T00:00:00");
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
 export function monthStartISO(dateISO: string): string {
   return dateISO.slice(0, 7) + "-01";
+}
+
+const WEEKDAYS_ES = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+
+export function weekdayEs(dateISO: string): string {
+  const d = new Date(dateISO + "T00:00:00");
+  return WEEKDAYS_ES[d.getDay()];
+}
+
+export function startOfWeekISO(dateISO: string): string {
+  const d = new Date(dateISO + "T00:00:00");
+  const dow = d.getDay(); // 0 = Sunday
+  const diffToMonday = dow === 0 ? -6 : 1 - dow;
+  d.setDate(d.getDate() + diffToMonday);
+  return d.toISOString().slice(0, 10);
+}
+
+export function formatDayShortEs(dateISO: string): string {
+  const d = new Date(dateISO + "T00:00:00");
+  return d.toLocaleDateString("es-ES", { day: "2-digit", month: "short" });
 }
