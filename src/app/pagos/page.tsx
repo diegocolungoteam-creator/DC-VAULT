@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { createPaymentAction, dedupePaymentsAction, deletePaymentAction } from "@/lib/actions";
+import { createPaymentAction, dedupePaymentsAction, deletePaymentAction, resetPaymentsAction } from "@/lib/actions";
 import { listClients, listPaymentsWithClient } from "@/lib/queries";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { DedupeButton } from "@/components/DedupeButton";
@@ -22,11 +22,22 @@ export default async function PagosPage() {
             {payments.length} pagos registrados · Total: {formatCurrencyEs(total)}
           </p>
         </div>
-        <DedupeButton
-          label="Eliminar duplicados"
-          confirmMessage="¿Eliminar pagos duplicados (mismo cliente, fecha, importe y concepto)? Se conserva uno de cada grupo."
-          action={dedupePaymentsAction}
-        />
+        <div className="flex items-start gap-2">
+          <DedupeButton
+            label="Eliminar duplicados"
+            confirmMessage="¿Eliminar pagos duplicados (mismo cliente, fecha e importe)? Se conserva uno de cada grupo."
+            action={dedupePaymentsAction}
+          />
+          <DedupeButton
+            label="Borrar todos los pagos"
+            pendingLabel="Borrando..."
+            dangerous
+            confirmMessage="Esto borra TODOS los pagos (no solo duplicados). Úsalo solo si vas a reimportar un CSV limpio justo después. ¿Continuar?"
+            action={resetPaymentsAction}
+            successTemplate="{n} pago(s) borrado(s). Ve a Importar y sube tu CSV de pagos."
+            emptyMessage="No había pagos que borrar"
+          />
+        </div>
       </div>
 
       <div className="card p-4">

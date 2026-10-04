@@ -4,12 +4,21 @@ import { useState, useTransition } from "react";
 
 export function DedupeButton({
   label,
+  pendingLabel = "Buscando duplicados...",
   confirmMessage,
   action,
+  // Use "{n}" as a placeholder for the deleted count.
+  successTemplate = "{n} duplicado(s) eliminado(s)",
+  emptyMessage = "No había duplicados",
+  dangerous = false,
 }: {
   label: string;
+  pendingLabel?: string;
   confirmMessage: string;
   action: () => Promise<number>;
+  successTemplate?: string;
+  emptyMessage?: string;
+  dangerous?: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<number | null>(null);
@@ -19,6 +28,7 @@ export function DedupeButton({
       <button
         type="button"
         className="btn btn-secondary"
+        style={dangerous ? { color: "var(--danger)", borderColor: "var(--danger)" } : undefined}
         disabled={isPending}
         onClick={() => {
           if (!window.confirm(confirmMessage)) return;
@@ -28,11 +38,11 @@ export function DedupeButton({
           });
         }}
       >
-        {isPending ? "Buscando duplicados..." : label}
+        {isPending ? pendingLabel : label}
       </button>
       {result !== null && (
-        <p className="text-xs text-[var(--muted)]">
-          {result > 0 ? `${result} duplicado(s) eliminado(s)` : "No había duplicados"}
+        <p className="max-w-xs text-right text-xs text-[var(--muted)]">
+          {result > 0 ? successTemplate.replace("{n}", String(result)) : emptyMessage}
         </p>
       )}
     </div>

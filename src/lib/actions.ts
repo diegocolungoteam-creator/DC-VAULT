@@ -135,6 +135,18 @@ export async function dedupePaymentsAction(): Promise<number> {
   return Number(info.changes);
 }
 
+// Wipes every payment. For when de-duping isn't enough because old re-imports
+// mixed in rows with genuinely wrong dates (e.g. an earlier buggy export) and
+// the only reliable fix is to reimport a known-good CSV from a clean slate.
+export async function resetPaymentsAction(): Promise<number> {
+  const db = getDb();
+  const info = db.prepare(`DELETE FROM payments`).run();
+  revalidatePath("/pagos");
+  revalidatePath("/");
+  revalidatePath("/contabilidad");
+  return Number(info.changes);
+}
+
 // ---------- Expenses ----------
 
 export async function createExpenseAction(formData: FormData) {
