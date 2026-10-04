@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getBillingSummary, getBusinessKPIs, getDashboardStats } from "@/lib/queries";
+import { getBillingSummary, getBusinessKPIs, getDashboardStats, getMarketingStats } from "@/lib/queries";
 import { StatCard } from "@/components/StatCard";
 import { formatCurrencyEs, formatDateEs } from "@/lib/dates";
 import { REVISION_ALERT_THRESHOLD_DAYS } from "@/lib/types";
@@ -10,6 +10,7 @@ export default async function DashboardPage() {
   const stats = getDashboardStats();
   const kpis = getBusinessKPIs();
   const billing = getBillingSummary();
+  const marketing = getMarketingStats({ from: "2000-01-01", to: new Date().toISOString().slice(0, 10) });
 
   return (
     <div className="flex flex-col gap-6">
@@ -61,7 +62,7 @@ export default async function DashboardPage() {
             Ver histórico completo
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
           <StatCard
             label="MRR"
             value={formatCurrencyEs(kpis.mrr)}
@@ -79,6 +80,12 @@ export default async function DashboardPage() {
             value={`${kpis.churnRatePct.toFixed(1)}%`}
             hint={`${kpis.churnedLast30} baja(s) reciente(s)`}
             tone={kpis.churnedLast30 > 0 ? "danger" : "default"}
+          />
+          <StatCard
+            label="CAC (histórico)"
+            value={marketing.cac != null ? formatCurrencyEs(marketing.cac) : "—"}
+            hint={`${marketing.totalNewClients} clientes · ${formatCurrencyEs(marketing.totalSpend)} en ads`}
+            tone="warning"
           />
         </div>
       </div>

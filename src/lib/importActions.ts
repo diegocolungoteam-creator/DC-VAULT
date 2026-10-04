@@ -138,6 +138,18 @@ export async function importPaymentsAction(
     `INSERT INTO payments (client_id, date, amount, method, concept) VALUES (?, ?, ?, ?, ?)`
   );
 
+  // De-dupe against existing payments (and within this same file) by
+  // client+date+amount+concept, so re-importing the same CSV is a no-op
+  // instead of creating duplicate payments every time.
+  const existingKeys = new Set(
+    (db.prepare(`SELECT client_id, date, amount, concept FROM payments`).all() as {
+      client_id: number;
+      date: string;
+      amount: number;
+      concept: string | null;
+    }[]).map((p) => `${p.client_id}|${p.date}|${p.amount}|${p.concept ?? ""}`)
+  );
+
   rows.forEach((row, i) => {
     const clientMatch = getMapped(row, mapping, "client_match")?.trim();
     const dateRaw = getMapped(row, mapping, "date");
@@ -161,13 +173,14 @@ export async function importPaymentsAction(
       result.errors.push(`Fila ${i + 2}: fecha o importe inválido.`);
       return;
     }
-    insert.run(
-      clientId,
-      date,
-      amount,
-      getMapped(row, mapping, "method")?.trim() || null,
-      getMapped(row, mapping, "concept")?.trim() || null
-    );
+    const concept = getMapped(row, mapping, "concept")?.trim() || null;
+    const key = `${clientId}|${date}|${amount}|${concept ?? ""}`;
+    if (existingKeys.has(key)) {
+      result.skipped++;
+      return;
+    }
+    existingKeys.add(key);
+    insert.run(clientId, date, amount, getMapped(row, mapping, "method")?.trim() || null, concept);
     result.inserted++;
   });
 
@@ -197,6 +210,17 @@ export async function importExpensesAction(
     `INSERT INTO expenses (date, amount, category, description) VALUES (?, ?, ?, ?)`
   );
 
+  // Same de-dupe approach as payments: skip rows that already exist by
+  // date+amount+category+description instead of creating duplicates.
+  const existingKeys = new Set(
+    (db.prepare(`SELECT date, amount, category, description FROM expenses`).all() as {
+      date: string;
+      amount: number;
+      category: string;
+      description: string | null;
+    }[]).map((e) => `${e.date}|${e.amount}|${e.category}|${e.description ?? ""}`)
+  );
+
   rows.forEach((row, i) => {
     const dateRaw = getMapped(row, mapping, "date");
     const amountRaw = getMapped(row, mapping, "amount");
@@ -207,12 +231,15 @@ export async function importExpensesAction(
       result.errors.push(`Fila ${i + 2}: fecha o importe inválido.`);
       return;
     }
-    insert.run(
-      date,
-      amount,
-      getMapped(row, mapping, "category")?.trim() || "general",
-      getMapped(row, mapping, "description")?.trim() || null
-    );
+    const category = getMapped(row, mapping, "category")?.trim() || "general";
+    const description = getMapped(row, mapping, "description")?.trim() || null;
+    const key = `${date}|${amount}|${category}|${description ?? ""}`;
+    if (existingKeys.has(key)) {
+      result.skipped++;
+      return;
+    }
+    existingKeys.add(key);
+    insert.run(date, amount, category, description);
     result.inserted++;
   });
 

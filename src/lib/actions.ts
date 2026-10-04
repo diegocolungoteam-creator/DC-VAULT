@@ -117,6 +117,24 @@ export async function deletePaymentAction(id: number, clientId: number) {
   revalidatePath("/contabilidad");
 }
 
+// Removes exact duplicates (same client + date + amount + concept) left over
+// from re-importing a CSV before imports were made idempotent, keeping the
+// oldest row of each group.
+export async function dedupePaymentsAction(): Promise<number> {
+  const db = getDb();
+  const info = db
+    .prepare(
+      `DELETE FROM payments WHERE id NOT IN (
+         SELECT MIN(id) FROM payments GROUP BY client_id, date, amount, COALESCE(concept, '')
+       )`
+    )
+    .run();
+  revalidatePath("/pagos");
+  revalidatePath("/");
+  revalidatePath("/contabilidad");
+  return Number(info.changes);
+}
+
 // ---------- Expenses ----------
 
 export async function createExpenseAction(formData: FormData) {
@@ -140,6 +158,22 @@ export async function deleteExpenseAction(id: number) {
   revalidatePath("/gastos");
   revalidatePath("/");
   revalidatePath("/contabilidad");
+}
+
+// Same idea as dedupePaymentsAction, for expenses.
+export async function dedupeExpensesAction(): Promise<number> {
+  const db = getDb();
+  const info = db
+    .prepare(
+      `DELETE FROM expenses WHERE id NOT IN (
+         SELECT MIN(id) FROM expenses GROUP BY date, amount, category, COALESCE(description, '')
+       )`
+    )
+    .run();
+  revalidatePath("/gastos");
+  revalidatePath("/");
+  revalidatePath("/contabilidad");
+  return Number(info.changes);
 }
 
 // ---------- Revisions ----------

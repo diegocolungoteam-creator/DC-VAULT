@@ -1,6 +1,7 @@
-import { createExpenseAction, deleteExpenseAction } from "@/lib/actions";
+import { createExpenseAction, dedupeExpensesAction, deleteExpenseAction } from "@/lib/actions";
 import { listExpenses } from "@/lib/queries";
 import { ConfirmButton } from "@/components/ConfirmButton";
+import { DedupeButton } from "@/components/DedupeButton";
 import { formatCurrencyEs, formatDateEs, todayISO } from "@/lib/dates";
 import { EXPENSE_CATEGORIES } from "@/lib/types";
 
@@ -12,11 +13,18 @@ export default async function GastosPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-xl font-semibold">Gastos</h1>
-        <p className="text-sm text-[var(--muted)]">
-          {expenses.length} gastos registrados · Total: {formatCurrencyEs(total)}
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold">Gastos</h1>
+          <p className="text-sm text-[var(--muted)]">
+            {expenses.length} gastos registrados · Total: {formatCurrencyEs(total)}
+          </p>
+        </div>
+        <DedupeButton
+          label="Eliminar duplicados"
+          confirmMessage="¿Eliminar gastos duplicados (misma fecha, importe, categoría y descripción)? Se conserva uno de cada grupo."
+          action={dedupeExpensesAction}
+        />
       </div>
 
       <div className="card p-4">

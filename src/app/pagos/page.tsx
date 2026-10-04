@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { createPaymentAction, deletePaymentAction } from "@/lib/actions";
+import { createPaymentAction, dedupePaymentsAction, deletePaymentAction } from "@/lib/actions";
 import { listClients, listPaymentsWithClient } from "@/lib/queries";
 import { ConfirmButton } from "@/components/ConfirmButton";
+import { DedupeButton } from "@/components/DedupeButton";
 import { formatCurrencyEs, formatDateEs, todayISO } from "@/lib/dates";
 import { PAYMENT_METHODS } from "@/lib/types";
 
@@ -14,11 +15,18 @@ export default async function PagosPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-xl font-semibold">Pagos</h1>
-        <p className="text-sm text-[var(--muted)]">
-          {payments.length} pagos registrados · Total: {formatCurrencyEs(total)}
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold">Pagos</h1>
+          <p className="text-sm text-[var(--muted)]">
+            {payments.length} pagos registrados · Total: {formatCurrencyEs(total)}
+          </p>
+        </div>
+        <DedupeButton
+          label="Eliminar duplicados"
+          confirmMessage="¿Eliminar pagos duplicados (mismo cliente, fecha, importe y concepto)? Se conserva uno de cada grupo."
+          action={dedupePaymentsAction}
+        />
       </div>
 
       <div className="card p-4">
