@@ -128,7 +128,7 @@ export function listRevisions(opts: { clientId?: number; status?: RevisionStatus
 
 // ---------- Dashboard / aggregates ----------
 
-export function getDashboardStats() {
+export function getDashboardStats(monthKey?: string) {
   const db = getDb();
   const activeClients = (
     db.prepare("SELECT COUNT(*) as n FROM clients WHERE status = 'activo'").get() as { n: number }
@@ -163,16 +163,29 @@ export function getDashboardStats() {
       .get(today) as { n: number }
   ).n;
 
-  const monthStart = today.slice(0, 7) + "-01";
+  const month = monthKey && /^\d{4}-\d{2}$/.test(monthKey) ? monthKey : today.slice(0, 7);
+  const monthStart = `${month}-01`;
+  const monthEnd = `${month}-31`; // lexicographic date comparison, safe upper bound for any month
+
   const monthIncome = (
-    db.prepare("SELECT COALESCE(SUM(amount),0) as t FROM payments WHERE date >= ?").get(monthStart) as {
-      t: number;
-    }
+    db
+      .prepare("SELECT COALESCE(SUM(amount),0) as t FROM payments WHERE date BETWEEN :from AND :to")
+      .get({ from: monthStart, to: monthEnd }) as { t: number }
   ).t;
   const monthExpense = (
-    db.prepare("SELECT COALESCE(SUM(amount),0) as t FROM expenses WHERE date >= ?").get(monthStart) as {
-      t: number;
-    }
+    db
+      .prepare("SELECT COALESCE(SUM(amount),0) as t FROM expenses WHERE date BETWEEN :from AND :to")
+      .get({ from: monthStart, to: monthEnd }) as { t: number }
+  ).t;
+  // "Facturado del mes": value of new contracts signed this month (new sales),
+  // as opposed to monthIncome which is cash actually collected this month.
+  const monthContracted = (
+    db
+      .prepare(
+        `SELECT COALESCE(SUM(contracted_total),0) as t FROM clients
+         WHERE enrollment_date BETWEEN :from AND :to`
+      )
+      .get({ from: monthStart, to: monthEnd }) as { t: number }
   ).t;
 
   const revisionAlerts = getRevisionAlerts(REVISION_ALERT_THRESHOLD_DAYS);
@@ -185,12 +198,28 @@ export function getDashboardStats() {
     overdueRenewals,
     pendingRevisions,
     overdueRevisionsCount,
+    month,
     monthIncome,
     monthExpense,
     monthBalance: monthIncome - monthExpense,
+    monthContracted,
     revisionAlerts,
     recentlyCompletedRevisions,
   };
+}
+
+export function getAvailableMonths(): string[] {
+  const db = getDb();
+  const rows = db
+    .prepare(
+      `SELECT DISTINCT substr(date, 1, 7) as m FROM payments
+       UNION SELECT DISTINCT substr(date, 1, 7) as m FROM expenses
+       UNION SELECT DISTINCT substr(enrollment_date, 1, 7) as m FROM clients WHERE enrollment_date IS NOT NULL`
+    )
+    .all() as { m: string }[];
+  const months = new Set(rows.map((r) => r.m).filter((m) => /^\d{4}-\d{2}$/.test(m)));
+  months.add(todayISO().slice(0, 7));
+  return Array.from(months).sort((a, b) => b.localeCompare(a));
 }
 
 function addDaysISO(dateISO: string, days: number): string {

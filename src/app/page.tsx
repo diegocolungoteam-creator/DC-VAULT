@@ -1,16 +1,28 @@
 import Link from "next/link";
-import { getBillingSummary, getBusinessKPIs, getDashboardStats, getMarketingStats } from "@/lib/queries";
+import {
+  getAvailableMonths,
+  getBillingSummary,
+  getBusinessKPIs,
+  getDashboardStats,
+  getMarketingStats,
+} from "@/lib/queries";
 import { StatCard } from "@/components/StatCard";
-import { formatCurrencyEs, formatDateEs } from "@/lib/dates";
+import { formatCurrencyEs, formatDateEs, formatMonthEs } from "@/lib/dates";
 import { REVISION_ALERT_THRESHOLD_DAYS } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
-  const stats = getDashboardStats();
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ mes?: string }>;
+}) {
+  const params = await searchParams;
+  const stats = getDashboardStats(params.mes);
   const kpis = getBusinessKPIs();
   const billing = getBillingSummary();
   const marketing = getMarketingStats({ from: "2000-01-01", to: new Date().toISOString().slice(0, 10) });
+  const availableMonths = getAvailableMonths();
 
   return (
     <div className="flex flex-col gap-6">
@@ -45,11 +57,32 @@ export default async function DashboardPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <StatCard label="Cobrado este mes" value={formatCurrencyEs(stats.monthIncome)} tone="success" />
-        <StatCard label="Gastos del mes" value={formatCurrencyEs(stats.monthExpense)} tone="danger" />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-medium">{formatMonthEs(stats.month)}</h2>
+        <form className="flex items-center gap-2" method="get">
+          <select name="mes" defaultValue={stats.month} className="input w-auto">
+            {availableMonths.map((m) => (
+              <option key={m} value={m}>
+                {formatMonthEs(m)}
+              </option>
+            ))}
+          </select>
+          <button type="submit" className="btn btn-secondary">
+            Ver
+          </button>
+        </form>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <StatCard
-          label="Balance del mes"
+          label="Facturado (nuevas ventas)"
+          value={formatCurrencyEs(stats.monthContracted)}
+          hint="Contratado por clientes dados de alta este mes"
+        />
+        <StatCard label="Cobrado" value={formatCurrencyEs(stats.monthIncome)} tone="success" />
+        <StatCard label="Gastos" value={formatCurrencyEs(stats.monthExpense)} tone="danger" />
+        <StatCard
+          label="Balance"
           value={formatCurrencyEs(stats.monthBalance)}
           tone={stats.monthBalance >= 0 ? "success" : "danger"}
         />

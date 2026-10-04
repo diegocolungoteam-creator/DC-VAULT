@@ -66,3 +66,9 @@ export function formatDayShortEs(dateISO: string): string {
   const d = new Date(dateISO + "T00:00:00");
   return d.toLocaleDateString("es-ES", { day: "2-digit", month: "short" });
 }
+
+export function formatMonthEs(monthKey: string): string {
+  const d = new Date(monthKey + "-01T00:00:00");
+  const label = d.toLocaleDateString("es-ES", { month: "long", year: "numeric" });
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
