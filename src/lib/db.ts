@@ -95,6 +95,12 @@ function migrate(db: DatabaseSync) {
   if (!clientColumns.some((c) => c.name === "source")) {
     db.exec("ALTER TABLE clients ADD COLUMN source TEXT");
   }
+  if (!clientColumns.some((c) => c.name === "contracted_total")) {
+    db.exec("ALTER TABLE clients ADD COLUMN contracted_total REAL");
+  }
+  if (!clientColumns.some((c) => c.name === "pending_amount")) {
+    db.exec("ALTER TABLE clients ADD COLUMN pending_amount REAL");
+  }
 }
 
 export function getDb(): DatabaseSync {

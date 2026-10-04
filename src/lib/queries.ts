@@ -1,5 +1,5 @@
 import { getDb } from "./db";
-import { daysBetween, todayISO } from "./dates";
+import { daysBetween, subtractDays, todayISO } from "./dates";
 import {
   REVISION_ALERT_THRESHOLD_DAYS,
   type AdSpendEntry,
@@ -430,6 +430,8 @@ export interface BusinessKPIs {
   ltv: number;
   payingClients: number;
   renewersPct: number;
+  churnedLast30: number;
+  churnRatePct: number;
 }
 
 const CYCLE_MONTHS: Record<string, number> = { mensual: 1, trimestral: 3, semestral: 6, anual: 12 };
@@ -470,6 +472,22 @@ export function getBusinessKPIs(): BusinessKPIs {
     )
     .get() as { total_paying: number; renewers: number | null };
 
+  // Churn: clients now 'baja' whose paid period lapsed (renewal_date) in the last 30
+  // days, used as a proxy for "when they left" since status changes aren't logged.
+  const today = todayISO();
+  const since30 = subtractDays(today, 30);
+  const activeCount = (
+    db.prepare(`SELECT COUNT(*) as n FROM clients WHERE status = 'activo'`).get() as { n: number }
+  ).n;
+  const churnedLast30 = (
+    db
+      .prepare(
+        `SELECT COUNT(*) as n FROM clients WHERE status = 'baja' AND renewal_date BETWEEN :since AND :today`
+      )
+      .get({ since: since30, today }) as { n: number }
+  ).n;
+  const churnBase = activeCount + churnedLast30;
+
   return {
     mrr,
     activeWithFee: activeClients.length,
@@ -477,6 +495,43 @@ export function getBusinessKPIs(): BusinessKPIs {
     ltv: ltvRow.avg_ltv ?? 0,
     payingClients: ltvRow.n,
     renewersPct: renewRow.total_paying > 0 ? ((renewRow.renewers ?? 0) / renewRow.total_paying) * 100 : 0,
+    churnedLast30,
+    churnRatePct: churnBase > 0 ? (churnedLast30 / churnBase) * 100 : 0,
+  };
+}
+
+// ---------- Facturado vs. cobrado ----------
+
+export interface BillingSummary {
+  totalContracted: number;
+  totalCollected: number;
+  totalPending: number;
+  clientsWithContracted: number;
+}
+
+export function getBillingSummary(): BillingSummary {
+  const db = getDb();
+
+  const contractedRow = db
+    .prepare(
+      `SELECT COALESCE(SUM(contracted_total), 0) as total, COUNT(*) as n
+       FROM clients WHERE contracted_total IS NOT NULL`
+    )
+    .get() as { total: number; n: number };
+
+  const collectedRow = db.prepare(`SELECT COALESCE(SUM(amount), 0) as total FROM payments`).get() as {
+    total: number;
+  };
+
+  const pendingRow = db
+    .prepare(`SELECT COALESCE(SUM(pending_amount), 0) as total FROM clients WHERE pending_amount IS NOT NULL`)
+    .get() as { total: number };
+
+  return {
+    totalContracted: contractedRow.total,
+    totalCollected: collectedRow.total,
+    totalPending: pendingRow.total,
+    clientsWithContracted: contractedRow.n,
   };
 }
 

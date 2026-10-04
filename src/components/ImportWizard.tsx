@@ -22,6 +22,8 @@ const FIELD_SYNONYMS: Record<string, string[]> = {
   fee: ["cuota", "importecuota", "precio", "tarifa", "importe"],
   billing_cycle: ["periodicidad", "ciclo", "frecuencia", "periodo"],
   renewal_date: ["fecharenovacion", "renovacion", "proximarenovacion", "vencimiento"],
+  contracted_total: ["contratadototal", "facturado", "contratado"],
+  pending_amount: ["pendientecobro", "pendiente", "pendientedecobro"],
   notes: ["notas", "observaciones", "comentarios"],
   client_match: ["cliente", "nombre", "email", "correo"],
   date: ["fecha"],

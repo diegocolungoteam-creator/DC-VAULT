@@ -16,6 +16,8 @@ export interface Client {
   billing_cycle: BillingCycle;
   renewal_date: string | null;
   source: string | null;
+  contracted_total: number | null;
+  pending_amount: number | null;
   created_at: string;
 }
 

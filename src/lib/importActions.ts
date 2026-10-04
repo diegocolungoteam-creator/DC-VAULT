@@ -52,13 +52,14 @@ export async function importClientsAction(
   const matchClient = buildClientMatcher(db);
   const localMatches = new Map<string, number>();
   const insert = db.prepare(
-    `INSERT INTO clients (name, email, phone, address, notes, status, enrollment_date, plan, fee, billing_cycle, renewal_date, source)
-     VALUES (:name, :email, :phone, :address, :notes, :status, :enrollment_date, :plan, :fee, :billing_cycle, :renewal_date, :source)`
+    `INSERT INTO clients (name, email, phone, address, notes, status, enrollment_date, plan, fee, billing_cycle, renewal_date, source, contracted_total, pending_amount)
+     VALUES (:name, :email, :phone, :address, :notes, :status, :enrollment_date, :plan, :fee, :billing_cycle, :renewal_date, :source, :contracted_total, :pending_amount)`
   );
   const update = db.prepare(
     `UPDATE clients SET name=:name, email=:email, phone=:phone, address=:address, notes=:notes,
      status=:status, enrollment_date=:enrollment_date, plan=:plan, fee=:fee,
-     billing_cycle=:billing_cycle, renewal_date=:renewal_date, source=:source WHERE id=:id`
+     billing_cycle=:billing_cycle, renewal_date=:renewal_date, source=:source,
+     contracted_total=:contracted_total, pending_amount=:pending_amount WHERE id=:id`
   );
 
   result.updated = 0;
@@ -90,6 +91,8 @@ export async function importClientsAction(
       billing_cycle,
       renewal_date: parseFlexibleDate(getMapped(row, mapping, "renewal_date")),
       source: getMapped(row, mapping, "source")?.trim() || null,
+      contracted_total: parseFlexibleAmount(getMapped(row, mapping, "contracted_total")),
+      pending_amount: parseFlexibleAmount(getMapped(row, mapping, "pending_amount")),
     };
 
     const existingId = localMatches.get(normalizeMatchKey(name)) ?? matchClient(name) ?? (email ? matchClient(email) : undefined);

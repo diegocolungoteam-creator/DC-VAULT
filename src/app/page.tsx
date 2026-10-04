@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getBusinessKPIs, getDashboardStats } from "@/lib/queries";
+import { getBillingSummary, getBusinessKPIs, getDashboardStats } from "@/lib/queries";
 import { StatCard } from "@/components/StatCard";
 import { formatCurrencyEs, formatDateEs } from "@/lib/dates";
 import { REVISION_ALERT_THRESHOLD_DAYS } from "@/lib/types";
@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function DashboardPage() {
   const stats = getDashboardStats();
   const kpis = getBusinessKPIs();
+  const billing = getBillingSummary();
 
   return (
     <div className="flex flex-col gap-6">
@@ -44,7 +45,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <StatCard label="Ingresos del mes" value={formatCurrencyEs(stats.monthIncome)} tone="success" />
+        <StatCard label="Cobrado este mes" value={formatCurrencyEs(stats.monthIncome)} tone="success" />
         <StatCard label="Gastos del mes" value={formatCurrencyEs(stats.monthExpense)} tone="danger" />
         <StatCard
           label="Balance del mes"
@@ -60,7 +61,7 @@ export default async function DashboardPage() {
             Ver histórico completo
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
           <StatCard
             label="MRR"
             value={formatCurrencyEs(kpis.mrr)}
@@ -73,6 +74,29 @@ export default async function DashboardPage() {
             hint={`${kpis.payingClients} clientes con pagos`}
           />
           <StatCard label="% clientes que renuevan" value={`${kpis.renewersPct.toFixed(1)}%`} />
+          <StatCard
+            label="Churn (30 días)"
+            value={`${kpis.churnRatePct.toFixed(1)}%`}
+            hint={`${kpis.churnedLast30} baja(s) reciente(s)`}
+            tone={kpis.churnedLast30 > 0 ? "danger" : "default"}
+          />
+        </div>
+      </div>
+
+      <div>
+        <h2 className="mb-3 font-medium">Facturado vs. cobrado</h2>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <StatCard
+            label="Facturado (contratado)"
+            value={formatCurrencyEs(billing.totalContracted)}
+            hint={`${billing.clientsWithContracted} clientes con importe contratado`}
+          />
+          <StatCard label="Cobrado (histórico)" value={formatCurrencyEs(billing.totalCollected)} tone="success" />
+          <StatCard
+            label="Pendiente de cobro"
+            value={formatCurrencyEs(billing.totalPending)}
+            tone={billing.totalPending > 0 ? "warning" : "default"}
+          />
         </div>
       </div>
 

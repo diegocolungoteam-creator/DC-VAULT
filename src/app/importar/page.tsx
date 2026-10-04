@@ -18,6 +18,8 @@ const CLIENT_FIELDS: ImportField[] = [
   { key: "billing_cycle", label: "Periodicidad (mensual/trimestral/semestral/anual)" },
   { key: "renewal_date", label: "Próxima renovación" },
   { key: "source", label: "Fuente / cómo llegó" },
+  { key: "contracted_total", label: "Facturado / contratado total" },
+  { key: "pending_amount", label: "Pendiente de cobro" },
   { key: "notes", label: "Notas" },
 ];
 
