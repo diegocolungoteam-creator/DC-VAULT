@@ -137,17 +137,20 @@ export async function importPaymentsAction(
   const insert = db.prepare(
     `INSERT INTO payments (client_id, date, amount, method, concept) VALUES (?, ?, ?, ?, ?)`
   );
+  const update = db.prepare(`UPDATE payments SET method = ?, concept = ? WHERE id = ?`);
 
-  // De-dupe against existing payments (and within this same file) by
-  // client+date+amount+concept, so re-importing the same CSV is a no-op
-  // instead of creating duplicate payments every time.
-  const existingKeys = new Set(
-    (db.prepare(`SELECT client_id, date, amount, concept FROM payments`).all() as {
+  // Identify existing payments by client+date+amount only (not concept): a
+  // client rarely gets billed the same amount twice on the exact same day,
+  // so this triple is treated as "the same payment" even if two exports of
+  // the sheet worded the concept differently. Re-importing updates the
+  // concept/method on the existing row instead of ever inserting a 2nd row.
+  const existingByKey = new Map(
+    (db.prepare(`SELECT id, client_id, date, amount FROM payments`).all() as {
+      id: number;
       client_id: number;
       date: string;
       amount: number;
-      concept: string | null;
-    }[]).map((p) => `${p.client_id}|${p.date}|${p.amount}|${p.concept ?? ""}`)
+    }[]).map((p) => [`${p.client_id}|${p.date}|${p.amount}`, p.id])
   );
 
   rows.forEach((row, i) => {
@@ -173,14 +176,17 @@ export async function importPaymentsAction(
       result.errors.push(`Fila ${i + 2}: fecha o importe inválido.`);
       return;
     }
+    const method = getMapped(row, mapping, "method")?.trim() || null;
     const concept = getMapped(row, mapping, "concept")?.trim() || null;
-    const key = `${clientId}|${date}|${amount}|${concept ?? ""}`;
-    if (existingKeys.has(key)) {
-      result.skipped++;
+    const key = `${clientId}|${date}|${amount}`;
+    const existingId = existingByKey.get(key);
+    if (existingId) {
+      update.run(method, concept, existingId);
+      result.updated = (result.updated ?? 0) + 1;
       return;
     }
-    existingKeys.add(key);
-    insert.run(clientId, date, amount, getMapped(row, mapping, "method")?.trim() || null, concept);
+    const info = insert.run(clientId, date, amount, method, concept);
+    existingByKey.set(key, Number(info.lastInsertRowid));
     result.inserted++;
   });
 
@@ -209,16 +215,19 @@ export async function importExpensesAction(
   const insert = db.prepare(
     `INSERT INTO expenses (date, amount, category, description) VALUES (?, ?, ?, ?)`
   );
+  const update = db.prepare(`UPDATE expenses SET description = ? WHERE id = ?`);
 
-  // Same de-dupe approach as payments: skip rows that already exist by
-  // date+amount+category+description instead of creating duplicates.
-  const existingKeys = new Set(
-    (db.prepare(`SELECT date, amount, category, description FROM expenses`).all() as {
+  // Identify existing expenses by date+amount+category only (not
+  // description), same reasoning as payments: re-exporting the sheet on a
+  // different day can reword the description for what is really the same
+  // expense. Re-importing updates the description instead of duplicating.
+  const existingByKey = new Map(
+    (db.prepare(`SELECT id, date, amount, category FROM expenses`).all() as {
+      id: number;
       date: string;
       amount: number;
       category: string;
-      description: string | null;
-    }[]).map((e) => `${e.date}|${e.amount}|${e.category}|${e.description ?? ""}`)
+    }[]).map((e) => [`${e.date}|${e.amount}|${e.category}`, e.id])
   );
 
   rows.forEach((row, i) => {
@@ -233,13 +242,15 @@ export async function importExpensesAction(
     }
     const category = getMapped(row, mapping, "category")?.trim() || "general";
     const description = getMapped(row, mapping, "description")?.trim() || null;
-    const key = `${date}|${amount}|${category}|${description ?? ""}`;
-    if (existingKeys.has(key)) {
-      result.skipped++;
+    const key = `${date}|${amount}|${category}`;
+    const existingId = existingByKey.get(key);
+    if (existingId) {
+      update.run(description, existingId);
+      result.updated = (result.updated ?? 0) + 1;
       return;
     }
-    existingKeys.add(key);
-    insert.run(date, amount, category, description);
+    const info = insert.run(date, amount, category, description);
+    existingByKey.set(key, Number(info.lastInsertRowid));
     result.inserted++;
   });
 
