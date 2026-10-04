@@ -166,27 +166,10 @@ export function getDashboardStats(monthKey?: string) {
   const month = monthKey && /^\d{4}-\d{2}$/.test(monthKey) ? monthKey : today.slice(0, 7);
   const monthStart = `${month}-01`;
   const monthEnd = `${month}-31`; // lexicographic date comparison, safe upper bound for any month
-
-  const monthIncome = (
-    db
-      .prepare("SELECT COALESCE(SUM(amount),0) as t FROM payments WHERE date BETWEEN :from AND :to")
-      .get({ from: monthStart, to: monthEnd }) as { t: number }
-  ).t;
-  const monthExpense = (
-    db
-      .prepare("SELECT COALESCE(SUM(amount),0) as t FROM expenses WHERE date BETWEEN :from AND :to")
-      .get({ from: monthStart, to: monthEnd }) as { t: number }
-  ).t;
-  // "Facturado del mes": value of new contracts signed this month (new sales),
-  // as opposed to monthIncome which is cash actually collected this month.
-  const monthContracted = (
-    db
-      .prepare(
-        `SELECT COALESCE(SUM(contracted_total),0) as t FROM clients
-         WHERE enrollment_date BETWEEN :from AND :to`
-      )
-      .get({ from: monthStart, to: monthEnd }) as { t: number }
-  ).t;
+  const monthSummary = getPeriodSummary(monthStart, monthEnd);
+  const monthIncome = monthSummary.income;
+  const monthExpense = monthSummary.expense;
+  const monthContracted = monthSummary.contracted;
 
   const revisionAlerts = getRevisionAlerts(REVISION_ALERT_THRESHOLD_DAYS);
   const recentlyCompletedRevisions = getRecentlyCompletedRevisions(7);
@@ -206,6 +189,39 @@ export function getDashboardStats(monthKey?: string) {
     revisionAlerts,
     recentlyCompletedRevisions,
   };
+}
+
+export interface PeriodSummary {
+  income: number;
+  expense: number;
+  balance: number;
+  contracted: number;
+}
+
+function getPeriodSummary(fromISO: string, toISO: string): PeriodSummary {
+  const db = getDb();
+  const income = (
+    db
+      .prepare("SELECT COALESCE(SUM(amount),0) as t FROM payments WHERE date BETWEEN :from AND :to")
+      .get({ from: fromISO, to: toISO }) as { t: number }
+  ).t;
+  const expense = (
+    db
+      .prepare("SELECT COALESCE(SUM(amount),0) as t FROM expenses WHERE date BETWEEN :from AND :to")
+      .get({ from: fromISO, to: toISO }) as { t: number }
+  ).t;
+  const contracted = (
+    db
+      .prepare(
+        `SELECT COALESCE(SUM(contracted_total),0) as t FROM clients WHERE enrollment_date BETWEEN :from AND :to`
+      )
+      .get({ from: fromISO, to: toISO }) as { t: number }
+  ).t;
+  return { income, expense, balance: income - expense, contracted };
+}
+
+export function getYearSummary(year: number): PeriodSummary {
+  return getPeriodSummary(`${year}-01-01`, `${year}-12-31`);
 }
 
 export function getAvailableMonths(): string[] {

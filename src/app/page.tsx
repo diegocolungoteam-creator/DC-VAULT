@@ -1,10 +1,12 @@
 import Link from "next/link";
 import {
   getAvailableMonths,
+  getAvailableYears,
   getBillingSummary,
   getBusinessKPIs,
   getDashboardStats,
   getMarketingStats,
+  getYearSummary,
 } from "@/lib/queries";
 import { StatCard } from "@/components/StatCard";
 import { formatCurrencyEs, formatDateEs, formatMonthEs } from "@/lib/dates";
@@ -15,14 +17,18 @@ export const dynamic = "force-dynamic";
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ mes?: string }>;
+  searchParams: Promise<{ mes?: string; vista?: string; year?: string }>;
 }) {
   const params = await searchParams;
+  const vista = params.vista === "anual" ? "anual" : "mensual";
   const stats = getDashboardStats(params.mes);
   const kpis = getBusinessKPIs();
   const billing = getBillingSummary();
   const marketing = getMarketingStats({ from: "2000-01-01", to: new Date().toISOString().slice(0, 10) });
   const availableMonths = getAvailableMonths();
+  const availableYears = getAvailableYears();
+  const year = Number(params.year) || availableYears[0] || new Date().getFullYear();
+  const yearSummary = vista === "anual" ? getYearSummary(year) : null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -58,35 +64,83 @@ export default async function DashboardPage({
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="font-medium">{formatMonthEs(stats.month)}</h2>
-        <form className="flex items-center gap-2" method="get">
-          <select name="mes" defaultValue={stats.month} className="input w-auto">
-            {availableMonths.map((m) => (
-              <option key={m} value={m}>
-                {formatMonthEs(m)}
-              </option>
-            ))}
-          </select>
-          <button type="submit" className="btn btn-secondary">
-            Ver
-          </button>
-        </form>
+        <div className="flex gap-2 text-sm">
+          <Link
+            href={{ pathname: "/", query: { vista: "mensual" } }}
+            className={`btn ${vista === "mensual" ? "btn-primary" : "btn-secondary"}`}
+          >
+            Mensual
+          </Link>
+          <Link
+            href={{ pathname: "/", query: { vista: "anual", year: String(year) } }}
+            className={`btn ${vista === "anual" ? "btn-primary" : "btn-secondary"}`}
+          >
+            Anual
+          </Link>
+        </div>
+
+        {vista === "mensual" ? (
+          <form className="flex items-center gap-2" method="get">
+            <input type="hidden" name="vista" value="mensual" />
+            <select name="mes" defaultValue={stats.month} className="input w-auto">
+              {availableMonths.map((m) => (
+                <option key={m} value={m}>
+                  {formatMonthEs(m)}
+                </option>
+              ))}
+            </select>
+            <button type="submit" className="btn btn-secondary">
+              Ver
+            </button>
+          </form>
+        ) : (
+          <form className="flex items-center gap-2" method="get">
+            <input type="hidden" name="vista" value="anual" />
+            <select name="year" defaultValue={year} className="input w-auto">
+              {availableYears.map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
+            </select>
+            <button type="submit" className="btn btn-secondary">
+              Ver
+            </button>
+          </form>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        <StatCard
-          label="Facturado (nuevas ventas)"
-          value={formatCurrencyEs(stats.monthContracted)}
-          hint="Contratado por clientes dados de alta este mes"
-        />
-        <StatCard label="Cobrado" value={formatCurrencyEs(stats.monthIncome)} tone="success" />
-        <StatCard label="Gastos" value={formatCurrencyEs(stats.monthExpense)} tone="danger" />
-        <StatCard
-          label="Balance"
-          value={formatCurrencyEs(stats.monthBalance)}
-          tone={stats.monthBalance >= 0 ? "success" : "danger"}
-        />
-      </div>
+      {vista === "mensual" ? (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+          <StatCard
+            label="Facturado (nuevas ventas)"
+            value={formatCurrencyEs(stats.monthContracted)}
+            hint="Contratado por clientes dados de alta este mes"
+          />
+          <StatCard label="Cobrado" value={formatCurrencyEs(stats.monthIncome)} tone="success" />
+          <StatCard label="Gastos" value={formatCurrencyEs(stats.monthExpense)} tone="danger" />
+          <StatCard
+            label="Balance"
+            value={formatCurrencyEs(stats.monthBalance)}
+            tone={stats.monthBalance >= 0 ? "success" : "danger"}
+          />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+          <StatCard
+            label="Facturado (nuevas ventas)"
+            value={formatCurrencyEs(yearSummary!.contracted)}
+            hint={`Contratado por clientes dados de alta en ${year}`}
+          />
+          <StatCard label="Cobrado" value={formatCurrencyEs(yearSummary!.income)} tone="success" />
+          <StatCard label="Gastos" value={formatCurrencyEs(yearSummary!.expense)} tone="danger" />
+          <StatCard
+            label="Balance"
+            value={formatCurrencyEs(yearSummary!.balance)}
+            tone={yearSummary!.balance >= 0 ? "success" : "danger"}
+          />
+        </div>
+      )}
 
       <div>
         <div className="mb-3 flex items-center justify-between">
