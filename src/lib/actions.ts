@@ -228,6 +228,45 @@ export async function deleteRevisionAction(id: number, clientId: number) {
   revalidatePath("/");
 }
 
+// ---------- Tasks / avisos ----------
+
+export async function createTaskAction(formData: FormData) {
+  const db = getDb();
+  const title = String(formData.get("title") ?? "").trim();
+  if (!title) return;
+  const notes = (formData.get("notes") as string) || null;
+  const dueDate = (formData.get("due_date") as string) || null;
+  const clientIdRaw = formData.get("client_id") as string;
+  const clientId = clientIdRaw ? Number(clientIdRaw) : null;
+  db.prepare(
+    `INSERT INTO tasks (title, notes, due_date, client_id, status) VALUES (?, ?, ?, ?, 'pendiente')`
+  ).run(title, notes, dueDate, clientId);
+  revalidatePath("/tareas");
+  revalidatePath("/");
+  redirect("/tareas");
+}
+
+export async function completeTaskAction(id: number) {
+  const db = getDb();
+  db.prepare("UPDATE tasks SET status = 'completada' WHERE id = ?").run(id);
+  revalidatePath("/tareas");
+  revalidatePath("/");
+}
+
+export async function reopenTaskAction(id: number) {
+  const db = getDb();
+  db.prepare("UPDATE tasks SET status = 'pendiente' WHERE id = ?").run(id);
+  revalidatePath("/tareas");
+  revalidatePath("/");
+}
+
+export async function deleteTaskAction(id: number) {
+  const db = getDb();
+  db.prepare("DELETE FROM tasks WHERE id = ?").run(id);
+  revalidatePath("/tareas");
+  revalidatePath("/");
+}
+
 // ---------- Ad spend / marketing ----------
 
 export async function createAdSpendAction(formData: FormData) {

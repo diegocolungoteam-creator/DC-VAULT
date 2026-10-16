@@ -1,4 +1,4 @@
-import type { ClientStatus, RevisionStatus } from "@/lib/types";
+import type { ClientStatus, RevisionStatus, TaskStatus } from "@/lib/types";
 
 const CLIENT_STATUS_STYLE: Record<ClientStatus, { bg: string; fg: string; label: string }> = {
   activo: { bg: "#dcfce7", fg: "#166534", label: "Activo" },
@@ -23,6 +23,20 @@ const REVISION_STATUS_STYLE: Record<RevisionStatus, { bg: string; fg: string; la
 
 export function RevisionStatusBadge({ status }: { status: RevisionStatus }) {
   const s = REVISION_STATUS_STYLE[status];
+  return (
+    <span className="badge" style={{ background: s.bg, color: s.fg }}>
+      {s.label}
+    </span>
+  );
+}
+
+const TASK_STATUS_STYLE: Record<TaskStatus, { bg: string; fg: string; label: string }> = {
+  pendiente: { bg: "#fef9c3", fg: "#854d0e", label: "Pendiente" },
+  completada: { bg: "#dcfce7", fg: "#166534", label: "Completada" },
+};
+
+export function TaskStatusBadge({ status }: { status: TaskStatus }) {
+  const s = TASK_STATUS_STYLE[status];
   return (
     <span className="badge" style={{ background: s.bg, color: s.fg }}>
       {s.label}

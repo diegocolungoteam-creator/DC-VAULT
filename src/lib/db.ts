@@ -69,6 +69,16 @@ function migrate(db: DatabaseSync) {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS tasks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      notes TEXT,
+      due_date TEXT,
+      status TEXT NOT NULL DEFAULT 'pendiente',
+      client_id INTEGER REFERENCES clients(id) ON DELETE SET NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
     CREATE TABLE IF NOT EXISTS ad_spend (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date TEXT NOT NULL,
@@ -89,6 +99,8 @@ function migrate(db: DatabaseSync) {
     CREATE INDEX IF NOT EXISTS idx_clients_renewal ON clients(renewal_date);
     CREATE INDEX IF NOT EXISTS idx_ad_spend_date ON ad_spend(date);
     CREATE INDEX IF NOT EXISTS idx_ad_spend_source ON ad_spend(source);
+    CREATE INDEX IF NOT EXISTS idx_tasks_due ON tasks(due_date);
+    CREATE INDEX IF NOT EXISTS idx_tasks_client ON tasks(client_id);
   `);
 
   const clientColumns = db.prepare("PRAGMA table_info(clients)").all() as { name: string }[];

@@ -1,6 +1,7 @@
 export type ClientStatus = "activo" | "inactivo" | "baja";
 export type BillingCycle = "mensual" | "trimestral" | "semestral" | "anual";
 export type RevisionStatus = "pendiente" | "realizada" | "cancelada";
+export type TaskStatus = "pendiente" | "completada";
 
 export interface Client {
   id: number;
@@ -61,6 +62,16 @@ export interface Revision {
   done_date: string | null;
   status: RevisionStatus;
   notes: string | null;
+  created_at: string;
+}
+
+export interface Task {
+  id: number;
+  title: string;
+  notes: string | null;
+  due_date: string | null;
+  status: TaskStatus;
+  client_id: number | null;
   created_at: string;
 }
 

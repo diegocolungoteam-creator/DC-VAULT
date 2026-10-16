@@ -9,6 +9,8 @@ import {
   type Payment,
   type Revision,
   type RevisionStatus,
+  type Task,
+  type TaskStatus,
 } from "./types";
 
 // ---------- Clients ----------
@@ -126,6 +128,40 @@ export function listRevisions(opts: { clientId?: number; status?: RevisionStatus
     .all(params) as unknown as (Revision & { client_name: string })[];
 }
 
+// ---------- Tasks / avisos ----------
+
+export function listTasks(opts: { status?: TaskStatus } = {}) {
+  const db = getDb();
+  const clauses: string[] = [];
+  const params: Record<string, string> = {};
+  if (opts.status) {
+    clauses.push("t.status = :status");
+    params.status = opts.status;
+  }
+  const where = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
+  return db
+    .prepare(
+      `SELECT t.*, c.name as client_name FROM tasks t
+       LEFT JOIN clients c ON c.id = t.client_id ${where}
+       ORDER BY (t.due_date IS NULL), t.due_date ASC, t.id DESC`
+    )
+    .all(params) as unknown as (Task & { client_name: string | null })[];
+}
+
+// Pending tasks due today or overdue, for the dashboard "avisos" widget.
+export function getTaskAlerts() {
+  const db = getDb();
+  const today = todayISO();
+  return db
+    .prepare(
+      `SELECT t.*, c.name as client_name FROM tasks t
+       LEFT JOIN clients c ON c.id = t.client_id
+       WHERE t.status = 'pendiente' AND (t.due_date IS NULL OR t.due_date <= :today)
+       ORDER BY (t.due_date IS NULL), t.due_date ASC, t.id DESC`
+    )
+    .all({ today }) as unknown as (Task & { client_name: string | null })[];
+}
+
 // ---------- Dashboard / aggregates ----------
 
 export function getDashboardStats(monthKey?: string) {
@@ -173,6 +209,7 @@ export function getDashboardStats(monthKey?: string) {
 
   const revisionAlerts = getRevisionAlerts(REVISION_ALERT_THRESHOLD_DAYS);
   const recentlyCompletedRevisions = getRecentlyCompletedRevisions(7);
+  const taskAlerts = getTaskAlerts();
 
   return {
     activeClients,
@@ -188,6 +225,7 @@ export function getDashboardStats(monthKey?: string) {
     monthContracted,
     revisionAlerts,
     recentlyCompletedRevisions,
+    taskAlerts,
   };
 }
 

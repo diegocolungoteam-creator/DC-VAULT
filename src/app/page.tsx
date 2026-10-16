@@ -9,7 +9,7 @@ import {
   getYearSummary,
 } from "@/lib/queries";
 import { StatCard } from "@/components/StatCard";
-import { formatCurrencyEs, formatDateEs, formatMonthEs } from "@/lib/dates";
+import { formatCurrencyEs, formatDateEs, formatMonthEs, todayISO } from "@/lib/dates";
 import { REVISION_ALERT_THRESHOLD_DAYS } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +29,7 @@ export default async function DashboardPage({
   const availableYears = getAvailableYears();
   const year = Number(params.year) || availableYears[0] || new Date().getFullYear();
   const yearSummary = vista === "anual" ? getYearSummary(year) : null;
+  const todayStr = todayISO();
 
   return (
     <div className="flex flex-col gap-6">
@@ -37,7 +38,7 @@ export default async function DashboardPage({
         <p className="text-sm text-[var(--muted)]">Estado general de tu operación</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
         <StatCard label="Clientes activos" value={String(stats.activeClients)} hint={`${stats.totalClients} en total`} />
         <StatCard
           label="Renovaciones próximas (30 días)"
@@ -61,6 +62,45 @@ export default async function DashboardPage({
           hint={`+${REVISION_ALERT_THRESHOLD_DAYS} días o nunca`}
           tone={stats.revisionAlerts.length > 0 ? "danger" : "default"}
         />
+        <StatCard
+          label="Avisos pendientes"
+          value={String(stats.taskAlerts.length)}
+          hint="Tareas y leads por avisar"
+          tone={stats.taskAlerts.length > 0 ? "danger" : "default"}
+        />
+      </div>
+
+      <div className="card p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-medium">
+            Avisos / tareas pendientes
+            <span className="ml-2 text-xs font-normal text-[var(--muted)]">vencidas o para hoy</span>
+          </h2>
+          <Link href="/tareas" className="text-xs text-[var(--accent)]">
+            Ver todas
+          </Link>
+        </div>
+        {stats.taskAlerts.length === 0 ? (
+          <p className="text-sm text-[var(--muted)]">No tienes avisos pendientes.</p>
+        ) : (
+          <ul className="flex flex-col divide-y divide-[var(--border)]">
+            {stats.taskAlerts.slice(0, 8).map((t) => (
+              <li key={t.id} className="flex items-center justify-between gap-2 py-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <span>{t.title}</span>
+                  {t.client_id && t.client_name && (
+                    <Link href={`/clientes/${t.client_id}`} className="text-xs text-[var(--accent)]">
+                      ({t.client_name})
+                    </Link>
+                  )}
+                </div>
+                <span className={t.due_date && t.due_date < todayStr ? "text-[var(--danger)]" : "text-[var(--muted)]"}>
+                  {t.due_date ? formatDateEs(t.due_date) : "Sin fecha"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2">
