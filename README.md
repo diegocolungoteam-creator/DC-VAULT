@@ -67,10 +67,30 @@ La base de datos se crea automáticamente la primera vez en `data/crm.db`. Ese
 fichero es tu CRM completo: haz copia de seguridad de esa carpeta de vez en
 cuando (por ejemplo, con Time Machine o copiándola a la nube manualmente).
 
-### Dejarlo funcionando de forma permanente
+### Arrancarlo sin usar la Terminal
 
-Para uso diario puedes dejar `npm run dev` corriendo en una pestaña de
-Terminal, o generar una versión optimizada:
+En la carpeta del proyecto hay dos archivos para esto:
+
+- **`start-crm.command`**: doble clic y arranca el CRM en segundo plano y
+  abre `http://localhost:3000` en tu navegador automáticamente. No hace
+  falta dejar ninguna ventana abierta — puedes cerrar la que se abre al
+  hacer doble clic.
+- **`stop-crm.command`**: doble clic para pararlo del todo.
+
+La primera vez que hagas doble clic, macOS puede avisar de que es un
+archivo descargado de internet; click derecho → **Abrir** (una sola vez)
+para confirmar que confías en él.
+
+**Para que arranque solo al encender el Mac**, sin tocar nada: Menú
+Apple → **Ajustes del Sistema** → **General** → **Elementos de inicio de
+sesión** → el botón **+** → selecciona `start-crm.command`. Así el CRM
+ya está disponible en `localhost:3000` nada más iniciar sesión, sin
+abrir Terminal ni hacer doble clic cada vez.
+
+### Alternativa: versión optimizada
+
+Para uso diario también puedes generar una versión optimizada en vez de
+modo desarrollo:
 
 ```bash
 npm run build
