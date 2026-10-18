@@ -61,18 +61,23 @@ brew install node
    npm run dev
    ```
 
-3. Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
+3. Abre [http://localhost:4455](http://localhost:4455) en tu navegador.
 
 La base de datos se crea automáticamente la primera vez en `data/crm.db`. Ese
 fichero es tu CRM completo: haz copia de seguridad de esa carpeta de vez en
 cuando (por ejemplo, con Time Machine o copiándola a la nube manualmente).
+
+El CRM usa siempre el puerto **4455** (en vez del 3000 por defecto de
+Next.js), justo para que no choque si algún día tienes otra app, otro
+proyecto o un segundo CRM corriendo a la vez en tu Mac — cada uno en su
+propia dirección, sin pisarse.
 
 ### Arrancarlo sin usar la Terminal
 
 En la carpeta del proyecto hay dos archivos para esto:
 
 - **`start-crm.command`**: doble clic y arranca el CRM en segundo plano y
-  abre `http://localhost:3000` en tu navegador automáticamente. No hace
+  abre `http://localhost:4455` en tu navegador automáticamente. No hace
   falta dejar ninguna ventana abierta — puedes cerrar la que se abre al
   hacer doble clic.
 - **`stop-crm.command`**: doble clic para pararlo del todo.
@@ -84,7 +89,7 @@ para confirmar que confías en él.
 **Para que arranque solo al encender el Mac**, sin tocar nada: Menú
 Apple → **Ajustes del Sistema** → **General** → **Elementos de inicio de
 sesión** → el botón **+** → selecciona `start-crm.command`. Así el CRM
-ya está disponible en `localhost:3000` nada más iniciar sesión, sin
+ya está disponible en `localhost:4455` nada más iniciar sesión, sin
 abrir Terminal ni hacer doble clic cada vez.
 
 ### Alternativa: versión optimizada
