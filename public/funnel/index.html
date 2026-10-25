@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Por qué tu cuerpo ya no responde pasados los 35 · PRIME-X</title>
+<meta name="description" content="Diagnóstico PRIME-X en 2 minutos para hombres de más de 35 que entrenan y el cuerpo no responde">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============ CONFIGURA AQUÍ ============
+   Los valores se cambian en el bloque CONFIG del <script> de abajo:
+   WHATSAPP, WEBHOOK_URL, VIDEO_URL, COACH_FOTO, TESTIMONIOS, PRIVACIDAD_URL
+========================================== */
+:root{
+  --bg:#f6f3fb; --card:#fff; --ink:#1c1630; --muted:#6b6480; --line:#e6e0f0;
+  --brand:#6d28d9; --brand-2:#a855f7; --brand-soft:#efe7fd; --ok:#16a34a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+.topbar{height:4px;background:linear-gradient(90deg,var(--brand),var(--brand-2),#f59e0b)}
+header{position:sticky;top:0;z-index:5;display:flex;justify-content:center;padding:10px 16px;background:rgba(246,243,251,.85);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.pill{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 16px 6px 6px;font-size:14px;font-weight:600;box-shadow:0 2px 10px rgba(60,20,120,.06)}
+.pill img,.avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;background:var(--brand-soft);display:grid;place-items:center;font-size:13px;font-weight:800;color:var(--brand);flex-shrink:0}
+main{max-width:640px;margin:0 auto;padding:28px 16px 60px}
+.hero{text-align:center}
+.hero h1{font-size:clamp(26px,5.5vw,36px);line-height:1.15;font-weight:800;letter-spacing:-.02em}
+.hero h1 span{color:var(--brand)}
+.hero .sub{margin-top:10px;color:var(--muted);font-size:16px}
+.checks{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;margin:16px 0 20px;font-size:14px;color:var(--muted)}
+.checks b{color:var(--ok);margin-right:4px}
+.video{position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#2a1f45;box-shadow:0 10px 30px rgba(60,20,120,.18)}
+.video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.video .ph{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-weight:600;font-size:14px;text-align:center;padding:20px;background:radial-gradient(circle at 30% 30%,#5b21b6,#1c1630)}
+.play{width:64px;height:64px;border-radius:50%;background:#fff;display:grid;place-items:center;margin:0 auto 10px}
+.play:after{content:"";border-left:18px solid var(--brand);border-top:11px solid transparent;border-bottom:11px solid transparent;margin-left:5px}
+.proof{margin:12px 0 22px;font-size:14px;color:var(--muted);text-align:center}
+.proof b{color:var(--brand)}
+.card{background:var(--card);border-radius:16px;border-top:4px solid var(--brand);padding:22px 16px;box-shadow:0 10px 30px rgba(60,20,120,.08)}
+.progress{height:6px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:18px}
+.progress div{height:100%;width:0;background:linear-gradient(90deg,var(--brand),var(--brand-2));transition:width .4s}
+.q h2{font-size:21px;text-align:center;margin-bottom:6px;font-weight:700;line-height:1.25}
+.q .hint{text-align:center;color:var(--muted);font-size:14px;margin-bottom:14px}
+.opts{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.opt{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;font-size:15px;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:14px 14px;cursor:pointer;transition:.15s}
+.opt:hover{border-color:var(--brand);background:var(--brand-soft)}
+.opt .ic{color:var(--muted);flex-shrink:0;font-size:18px}
+.opt.sel{border-color:var(--brand);background:var(--brand-soft)}
+.opt.sel .ic{color:var(--brand)}
+.btn{display:block;width:100%;border:0;border-radius:12px;padding:16px;font:inherit;font-weight:800;font-size:16px;letter-spacing:.02em;color:#fff;background:linear-gradient(90deg,var(--brand),var(--brand-2));cursor:pointer;margin-top:16px;box-shadow:0 8px 20px rgba(109,40,217,.3);text-decoration:none;text-align:center}
+.btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+.back{display:block;margin:14px auto 0;background:none;border:0;color:var(--muted);font:inherit;font-size:14px;cursor:pointer;text-decoration:underline}
+.inter{text-align:center}
+.inter h2{font-size:22px;margin-bottom:8px}
+.inter p{color:var(--muted);margin-bottom:16px}
+.pillars{display:grid;gap:10px;text-align:left}
+.pillar{display:flex;gap:12px;background:var(--bg);border-radius:12px;padding:12px}
+.pillar .n{flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px}
+.pillar b{display:block;font-size:15px}
+.pillar small{color:var(--muted);font-size:14px}
+.testis{display:grid;gap:12px;text-align:left;margin-top:12px}
+.testi{display:flex;gap:12px;background:var(--bg);border-radius:12px;padding:12px}
+.testi .avatar{flex-shrink:0;width:44px;height:44px}
+.testi b{display:block;font-size:14px}
+.testi small{color:var(--muted);font-size:13px}
+.testi .res{color:var(--brand);font-weight:700;font-size:14px}
+.loader{text-align:center;padding:10px 0}
+.loader h2{font-size:20px;margin-bottom:16px}
+.ld{display:flex;align-items:center;gap:10px;padding:8px 0;color:var(--muted);font-size:15px;opacity:.35;transition:.3s;text-align:left}
+.ld.on{opacity:1;color:var(--ink)}
+.ld .dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);flex-shrink:0;display:grid;place-items:center;font-size:12px;color:#fff}
+.ld.done .dot{background:var(--ok);border-color:var(--ok)}
+.bar{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin:6px 0 18px}
+.bar div{height:100%;width:0;background:linear-gradient(90deg,var(--brand),var(--brand-2));transition:width .2s linear}
+form .f{margin-top:12px}
+form label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+form input{width:100%;font:inherit;font-size:16px;padding:13px 14px;border:1.5px solid var(--line);border-radius:12px;outline:none}
+form input:focus{border-color:var(--brand)}
+.err{color:#dc2626;font-size:13px;margin-top:8px;min-height:18px}
+.tag{display:inline-block;background:var(--brand-soft);color:var(--brand);font-weight:700;font-size:13px;padding:4px 12px;border-radius:99px;margin-bottom:10px}
+.result h2{font-size:24px;line-height:1.2;margin-bottom:10px}
+.result p{color:var(--muted);margin-bottom:10px}
+.result h3{font-size:15px;margin:18px 0 6px}
+.seen{background:var(--bg);border-radius:12px;padding:6px 14px;margin:8px 0 4px}
+.seen div{display:flex;justify-content:space-between;gap:14px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.seen div:last-child{border-bottom:0}
+.seen span{color:var(--muted);flex-shrink:0}
+.seen b{text-align:right;font-weight:600}
+.result ul{list-style:none;margin:6px 0 14px}
+.result li{padding:8px 0 8px 28px;position:relative;border-bottom:1px solid var(--line);font-size:15px}
+.result li:before{content:"✓";position:absolute;left:4px;color:var(--ok);font-weight:800}
+.note{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:12px;padding:10px 12px;font-size:14px;margin-bottom:12px}
+.legal{max-width:640px;margin:22px auto 0;font-size:12px;color:var(--muted);text-align:center;padding:0 16px}
+.fade{animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.hide{display:none}
+@media (prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<!-- Formulario oculto: Netlify lo detecta al publicar y crea el formulario "funnel-primex".
+     Sus campos tienen que coincidir con los que envía enviarLead() -->
+<form name="funnel-primex" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input name="bot-field"><input name="nombre"><input name="whatsapp"><input name="email"><input name="perfil">
+  <input name="edad"><input name="situacion"><input name="momento"><input name="entreno"><input name="sueno">
+  <input name="semana"><input name="probado"><input name="analitica"><input name="causa"><input name="compromiso">
+  <input name="fecha"><input name="origen">
+</form>
+
+<div class="topbar"></div>
+<header><div class="pill"><img id="coachAv" src="logo-primex.png" alt="PRIME-X">Diego Colungo · PRIME-X para hombres +35</div></header>
+
+<main>
+  <section class="hero" id="hero">
+    <h1>Descubre por qué tu cuerpo <span>ya no responde</span> como antes</h1>
+    <p class="sub">Para hombres de más de 35 que entrenan, comen razonablemente bien y aun así siguen con la misma barriga, duermen mal y van sin energía</p>
+    <div class="checks"><span><b>✓</b>Diagnóstico en 2 minutos</span><span><b>✓</b>Basado en tu caso, no en una plantilla</span><span><b>✓</b>Te lo explico yo por WhatsApp</span></div>
+    <div class="video" id="video"><div class="ph"><div><div class="play"></div>Vídeo de 1 minuto: por qué a partir de los 35 hacer lo de siempre deja de funcionar</div></div></div>
+    <p class="proof"><b>+200 hombres</b> y 15 años trabajando con este perfil · Empieza abajo</p>
+  </section>
+
+  <section class="card" id="card">
+    <div class="progress" id="prog"><div></div></div>
+    <div id="stage"></div>
+  </section>
+</main>
+
+<p class="legal">Al dejar tus datos aceptas que DC TEAM te contacte por WhatsApp, teléfono o email para darte tu resultado. No compartimos tu información con nadie · <a id="privacidad" href="#" style="color:inherit">Política de privacidad</a></p>
+
+<script>
+/* ================= CONFIG ================= */
+const WHATSAPP = "34627745747";        // tu número con prefijo, sin + ni espacios
+const NETLIFY_FORMS = true;            // guarda cada lead en Netlify → Forms → funnel-primex
+const WEBHOOK_URL = "";                // opcional: Inbound Webhook de GHL, Make o Zapier
+const VIDEO_URL = "";                  // opcional: embed de YouTube/Vimeo, ej. https://www.youtube.com/embed/XXXX
+const COACH_FOTO = "";                 // opcional: tu foto para la cabecera (si no, sale el logo PRIME-X)
+const PRIVACIDAD_URL = "";             // enlace a tu política de privacidad
+// Testimonios REALES de clientes (con su permiso). Mientras esté vacío no se muestra ninguno
+// Formato: ["Inicial", "Cliente PRIME-X, 42 años", "Directivo, 2 hijos", "Resultado concreto"]
+const TESTIMONIOS = [];
+/* ========================================== */
+
+if (VIDEO_URL) document.getElementById('video').innerHTML = `<iframe src="${VIDEO_URL}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+if (COACH_FOTO) document.getElementById('coachAv').src = COACH_FOTO;
+if (PRIVACIDAD_URL) document.getElementById('privacidad').href = PRIVACIDAD_URL;
+
+const steps = [
+  {id:"edad", label:"Edad", q:"¿Cuántos años tienes?", opts:["Menos de 35","35–39","40–44","45–49","50–55","Más de 55"]},
+  {id:"situacion", label:"Situación", q:"¿Cuál te describe mejor ahora mismo?", opts:[
+    "Entreno y como bien, pero el cuerpo ya no responde como antes",
+    "La barriga no se va por mucho que entrene",
+    "Duermo mal y voy cansado todo el día",
+    "He perdido las ganas, también en la cama",
+    "Empiezo fuerte y a las pocas semanas lo dejo"]},
+  {id:"momento", label:"Lo nota más", q:"¿En qué momento del día lo notas más?", opts:[
+    "Al despertar, me levanto cansado aunque haya dormido",
+    "A media tarde, me caigo y tiro de café",
+    "Por la noche, llego a casa sin ganas de nada",
+    "En el gimnasio, no rindo como hace unos años",
+    "Delante del espejo o cuando la ropa me aprieta"]},
+  {id:"entreno", label:"Entreno", q:"¿Cómo entrenas ahora mismo?", opts:[
+    "Fuerza 4 días o más, desde hace años",
+    "2 o 3 días, cuando el trabajo me deja",
+    "Sobre todo cardio, pádel o correr",
+    "Ahora mismo no entreno"]},
+  {id:"sueno", label:"Sueño", q:"¿Cómo duermes?", opts:[
+    "7 horas o más y me levanto descansado",
+    "Duermo, pero me levanto como si no",
+    "Me despierto de madrugada y me cuesta volver a dormir",
+    "Menos de 6 horas, no me da la vida"]},
+  {id:"semana", label:"Semana", q:"¿Cómo es tu semana normal?", opts:[
+    "Horario de oficina más o menos estable",
+    "Tengo mi negocio y estoy siempre conectado",
+    "Viajo mucho por trabajo",
+    "Trabajo más hijos y apenas tengo tiempo para mí",
+    "Turnos u horarios que cambian cada semana"]},
+  {id:"probado", label:"Ha probado", q:"¿Qué has probado hasta ahora?", hint:"Puedes marcar varias", multi:true, opts:[
+    "Dietas o ayuno, y acabé recuperando el peso",
+    "Entrenar más días o más duro",
+    "Suplementos, quemagrasas o potenciadores de testosterona",
+    "Un entrenador o una app que acabó desapareciendo",
+    "Planes de internet que no estaban hechos para mí",
+    "Nunca he seguido un plan serio y personalizado"]},
+  {inter:true},
+  {id:"analitica", label:"Analítica", q:"¿Alguien ha mirado tu analítica pensando en tu entreno y tu nutrición?", opts:[
+    "Nunca me he hecho una con ese fin",
+    "Me hice una, pero nadie me la explicó",
+    "Sí, pero hace más de un año",
+    "Sí, en los últimos meses"]},
+  {id:"causa", label:"Cree que es", q:"¿Por qué crees que tu cuerpo no responde?", opts:[
+    "Me falta disciplina o tiempo",
+    "Es la edad, es lo que toca",
+    "Me falta dar con la dieta o el suplemento adecuado",
+    "No lo sé, por eso estoy aquí"]},
+  {id:"compromiso", label:"Empezaría", q:"Si tuvieras un plan montado sobre tu analítica y alguien revisándolo cada semana, ¿cuándo empezarías?", opts:[
+    "Ya, estoy harto de esperar",
+    "En las próximas 2 semanas",
+    "Este mes",
+    "Solo estoy mirando de momento"]},
+  {loader:true},
+  {form:true},
+  {result:true}
+];
+
+const answers = {}; let i = 0;
+const stage = document.getElementById('stage');
+const prog = document.querySelector('#prog div');
+const qCount = steps.filter(s=>s.id).length;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function setProgress(){
+  const done = steps.slice(0,i).filter(s=>s.id).length;
+  prog.style.width = Math.min(100, (done/qCount)*100) + '%';
+}
+function go(n){ i = n; render(); window.scrollTo({top:document.getElementById('card').offsetTop-80,behavior:'smooth'}); }
+function backBtn(){ return i>0 ? `<button class="back" onclick="goBack()">Volver atrás</button>` : ''; }
+function goBack(){ let n=i-1; while(n>0 && !steps[n].id) n--; go(n); }
+
+function render(){
+  setProgress();
+  const s = steps[i];
+  document.getElementById('hero').classList.toggle('hide', i>0);
+  document.getElementById('prog').classList.toggle('hide', !!(s.form||s.result));
+  if (s.id) return renderQ(s);
+  if (s.inter) return renderInter();
+  if (s.loader) return renderLoader();
+  if (s.form) return renderForm();
+  if (s.result) return renderResult();
+}
+
+function renderQ(s){
+  const sel = new Set(s.multi ? (answers[s.id]||[]) : []);
+  stage.innerHTML = `<div class="q fade"><h2>${s.q}</h2>${s.hint?`<p class="hint">${s.hint}</p>`:''}
+    <div class="opts">${s.opts.map((o,k)=>`<button class="opt ${sel.has(o)||answers[s.id]===o?'sel':''}" data-k="${k}">${o}<span class="ic">${s.multi?(sel.has(o)?'✓':'+'):'→'}</span></button>`).join('')}</div>
+    ${s.multi?`<button class="btn" id="next" ${sel.size?'':'disabled'}>SIGUIENTE</button>`:''}${backBtn()}</div>`;
+  stage.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+    const o = s.opts[b.dataset.k];
+    if (!s.multi){ answers[s.id]=o; go(i+1); return; }
+    sel.has(o)?sel.delete(o):sel.add(o); answers[s.id]=[...sel];
+    b.classList.toggle('sel'); b.querySelector('.ic').textContent = sel.has(o)?'✓':'+';
+    document.getElementById('next').disabled = !sel.size;
+  });
+  if (s.multi) document.getElementById('next').onclick=()=>go(i+1);
+}
+
+function renderInter(){
+  const testis = TESTIMONIOS.length ? `<div class="testis">${TESTIMONIOS.map(x=>`<div class="testi"><span class="avatar">${esc(x[0])}</span><div><b>${esc(x[1])}</b><small>${esc(x[2])}</small><div class="res">${esc(x[3])}</div></div></div>`).join('')}</div>` : '';
+  stage.innerHTML = `<div class="inter fade"><h2>No es falta de disciplina</h2>
+    <p>Eso ya lo has demostrado. Pasados los 35 el cuerpo funciona con un entorno hormonal distinto, y un plan genérico no lo tiene en cuenta. Por eso en PRIME-X trabajamos así:</p>
+    <div class="pillars">
+      <div class="pillar"><span class="n">1</span><div><b>Tu analítica primero</b><small>Vemos qué está pasando por dentro antes de tocar nada</small></div></div>
+      <div class="pillar"><span class="n">2</span><div><b>Un plan que cabe en tu semana</b><small>Con tu trabajo, tu familia y tus viajes, no contra ellos</small></div></div>
+      <div class="pillar"><span class="n">3</span><div><b>Revisión cada semana</b><small>Entran tus datos, ajustamos el plan. No desaparezco</small></div></div>
+    </div>${testis}
+    <button class="btn" onclick="go(i+1)">SEGUIR CON MI TEST</button>${backBtn()}</div>`;
+}
+
+function renderLoader(){
+  const items = ["Analizando tu edad y tu situación","Cruzando tu sueño y tu energía","Revisando lo que ya has probado","Detectando qué está frenando a tu cuerpo","Preparando tu diagnóstico PRIME-X"];
+  stage.innerHTML = `<div class="loader fade"><h2>Estamos preparando tu resultado…</h2><div class="bar"><div id="lb"></div></div>
+    ${items.map((t,k)=>`<div class="ld" id="ld${k}"><span class="dot"></span>${t}</div>`).join('')}</div>`;
+  let p=0; const lb=document.getElementById('lb');
+  const iv=setInterval(()=>{
+    p+=2; lb.style.width=p+'%';
+    const k=Math.floor(p/20.01);
+    for(let j=0;j<items.length;j++){const el=document.getElementById('ld'+j); if(!el) continue;
+      el.classList.toggle('on', j<=k); if(j<k){el.classList.add('done'); el.querySelector('.dot').textContent='✓';}}
+    if(p>=100){clearInterval(iv); setTimeout(()=>go(i+1),400);}
+  },70);
+}
+
+function renderForm(){
+  stage.innerHTML = `<div class="fade"><div style="text-align:center"><span class="tag">✓ Diagnóstico listo</span>
+    <h2 style="font-size:22px;margin:0 0 6px">¿A quién le preparo el diagnóstico?</h2><p style="color:var(--muted)">Lo ves al momento y te lo explico yo personalmente por WhatsApp</p></div>
+    <form id="lead" novalidate>
+      <div class="f"><label for="n">Nombre</label><input id="n" autocomplete="given-name" placeholder="Tu nombre"></div>
+      <div class="f"><label for="w">WhatsApp</label><input id="w" type="tel" autocomplete="tel" placeholder="+34 600 000 000"></div>
+      <div class="f"><label for="e">Email</label><input id="e" type="email" autocomplete="email" placeholder="tu@email.com"></div>
+      <div class="err" id="err"></div>
+      <button class="btn" type="submit">VER MI RESULTADO</button>
+    </form>${backBtn()}</div>`;
+  document.getElementById('lead').onsubmit = ev=>{
+    ev.preventDefault();
+    const n=document.getElementById('n').value.trim(), w=document.getElementById('w').value.replace(/[^\d+]/g,''), e=document.getElementById('e').value.trim();
+    const err=document.getElementById('err');
+    if(n.length<2) return err.textContent='Pon tu nombre';
+    if(w.replace(/\D/g,'').length<9) return err.textContent='Revisa tu número de WhatsApp';
+    if(!/^\S+@\S+\.\S+$/.test(e)) return err.textContent='Revisa tu email';
+    Object.assign(answers,{nombre:n,whatsapp:w,email:e,perfil:profile().tag,fecha:new Date().toISOString(),origen:location.href});
+    enviarLead();
+    go(i+1);
+  };
+}
+
+function enviarLead(){
+  // Campos planos, una columna por dato. Las respuestas múltiples van separadas por " | "
+  const fields = {};
+  for (const [k,v] of Object.entries(answers)) fields[k] = Array.isArray(v) ? v.join(' | ') : v;
+  if (NETLIFY_FORMS && location.protocol.startsWith('http')) {
+    fetch(location.pathname, {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:new URLSearchParams({'form-name':'funnel-primex','bot-field':'',...fields}).toString(), keepalive:true}).catch(()=>{});
+  }
+  if (WEBHOOK_URL) {
+    fetch(WEBHOOK_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:new URLSearchParams(fields).toString(), keepalive:true}).catch(()=>{});
+  }
+}
+
+function profile(){
+  const sit = answers.situacion||"", sue = answers.sueno||"", mom = answers.momento||"";
+  const probado = (answers.probado||[]).join(' ');
+  const durmiendoMal = !/descansado/.test(sue);
+
+  if (/ganas|Duermo mal/.test(sit) || (durmiendoMal && /despertar|media tarde|noche/.test(mom))) return {key:"motor", tag:"Motor en modo ahorro",
+    title:"Tu cuerpo no tiene un problema de fuerza de voluntad, tiene el motor en modo ahorro",
+    text:"El sueño, el estrés y un entorno hormonal que no es el que debería están frenando tu energía, tus ganas y tu recomposición. Recortar más comida o entrenar más duro no lo arregla. Primero hay que ver qué pasa por dentro",
+    pts:["Lectura de tu analítica para saber qué está frenando a tu cuerpo","Sueño y estrés trabajados como parte del plan, no como un consejo suelto","Fuerza pensada para +35 que encaja en tu agenda","Revisión semanal conmigo: entran tus datos y ajustamos"]};
+
+  if (/Empiezo fuerte/.test(sit) || /desapareciendo/.test(probado)) return {key:"intermitente", tag:"Arranques que no llegan a meta",
+    title:"Sabes empezar, lo que te ha faltado es un sistema que te sostenga",
+    text:"No es que te falte disciplina. Los planes que has seguido no estaban hechos para tu semana y nadie revisaba si funcionaban. Cuando la vida aprieta, se cae lo que no encaja",
+    pts:["Un plan montado sobre tu semana real, no sobre la de otro","Mínimos para semanas malas, para no volver a empezar de cero","Revisión semanal conmigo: no desaparezco","Fases claras hasta que tengas criterio propio para mantenerlo"]};
+
+  if (/4 días|2 o 3/.test(answers.entreno||"")) return {key:"estancado", tag:"Haces todo bien y no responde",
+    title:"Entrenas y comes bien, y aun así el cuerpo no responde. El problema no es el esfuerzo",
+    text:"Hacer más de lo mismo no te va a sacar de ahí. Si las hormonas y la recuperación no acompañan, el cuerpo no tiene con qué responder. Funciona cuando el plan se monta sobre tu analítica y no sobre una plantilla",
+    pts:["Lectura de tu analítica antes de tocar nada","Reset metabólico para que la barriga vuelva a moverse","Entreno ajustado a lo que tu cuerpo recupera de verdad","Revisión semanal conmigo con tus datos"]};
+
+  return {key:"agenda", tag:"Con ganas y sin hueco",
+    title:"Tienes ganas, lo que te falta es un plan que quepa en tu semana",
+    text:"Con 3 sesiones bien hechas y una nutrición simple se puede bajar barriga y ganar músculo pasados los 35. El problema nunca fue el tiempo, fue que el plan no estaba hecho para tu vida",
+    pts:["Entrenos de 45 a 60 minutos, 3 o 4 días","Comidas que funcionan en días caóticos, viajes y comidas fuera","Lectura de tu analítica para no ir a ciegas","Revisión semanal conmigo"]};
+}
+
+function renderResult(){
+  const p = profile(); const name = answers.nombre || '';
+  const menor35 = answers.edad === "Menos de 35";
+  const seen = [["Lo notas más", answers.momento],["Sueño", answers.sueno],["Analítica", answers.analitica],["Crees que es", answers.causa]].filter(x=>x[1]);
+  const lines = [
+    `Hola Diego, soy ${name}. He hecho el test PRIME-X y me ha salido "${p.tag}"`,
+    "",
+    `Edad: ${answers.edad}`,
+    `Lo noto más: ${answers.momento}`,
+    `Sueño: ${answers.sueno}`,
+    `Analítica: ${answers.analitica}`,
+    `Empezaría: ${answers.compromiso}`,
+    "",
+    "Quiero saber cómo sería mi plan"
+  ];
+  const wa = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(lines.join('\n'))}`;
+  stage.innerHTML = `<div class="result fade"><span class="tag">Perfil: ${esc(p.tag)}</span>
+    <h2>${name?esc(name)+', ':''}${p.title.charAt(0).toLowerCase()+p.title.slice(1)}</h2>
+    ${menor35?`<div class="note">PRIME-X está pensado para hombres de más de 35. Escríbeme igualmente y te digo si encaja contigo</div>`:''}
+    <p>${p.text}</p>
+    <h3>Lo que me has contado</h3>
+    <div class="seen">${seen.map(x=>`<div><span>${x[0]}</span><b>${esc(x[1])}</b></div>`).join('')}</div>
+    <h3>Lo que incluiría tu plan PRIME-X</h3>
+    <ul>${p.pts.map(x=>`<li>${x}</li>`).join('')}</ul>
+    <a class="btn" href="${wa}" target="_blank" rel="noopener">QUIERO MI PLAN POR WHATSAPP</a>
+    <p style="text-align:center;font-size:13px;margin-top:10px">Te respondo yo personalmente · Entradas el día 1 y el 16, máximo 5 altas por entrada</p></div>`;
+}
+
+render();
+</script>
+</body>
+</html>

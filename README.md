@@ -208,3 +208,19 @@ en `webhookUrl` y vuelve a publicar. Cada lead llega con los mismos campos
 (form-urlencoded) para mapearlos al contacto y lanzar tus automatizaciones;
 después lo traes al CRM con **Sincronizar con GoHighLevel**. Netlify Forms y
 el webhook funcionan a la vez.
+
+## Funnel PRIME-X (`/funnel/index.html`)
+
+Funnel de captación para hombres de más de 35: 10 preguntas (edad,
+situación, cuándo lo nota, entreno, sueño, semana, qué ha probado,
+analítica, qué cree que es la causa y cuándo empezaría), una pantalla con los
+3 pilares de PRIME-X, un formulario y un resultado con uno de 4 perfiles
+(Motor en modo ahorro, Arranques que no llegan a meta, Haces todo bien y no
+responde, Con ganas y sin hueco). El botón final abre tu WhatsApp con el
+perfil y las respuestas clave ya escritos.
+
+Se publica igual que el test: arrastra la carpeta `public/funnel` a
+<https://app.netlify.com/drop>, activa *Forms → Enable form detection* y
+vuelve a subirla. Los leads aparecen en **Forms → funnel-primex**. Lo que
+se configura (WhatsApp, webhook, vídeo, foto, testimonios reales y enlace de
+privacidad) está en el bloque `CONFIG` del `<script>`.
