@@ -101,7 +101,7 @@ form input:focus{border-color:var(--brand)}
 <!-- Formulario oculto: Netlify lo detecta al publicar y crea el formulario "funnel-primex".
      Sus campos tienen que coincidir con los que envía enviarLead() -->
 <form name="funnel-primex" data-netlify="true" netlify-honeypot="bot-field" hidden>
-  <input name="bot-field"><input name="nombre"><input name="whatsapp"><input name="email"><input name="perfil">
+  <input name="bot-field"><input name="nombre"><input name="email"><input name="perfil">
   <input name="edad"><input name="situacion"><input name="momento"><input name="entreno"><input name="sueno">
   <input name="semana"><input name="probado"><input name="analitica"><input name="causa"><input name="compromiso">
   <input name="fecha"><input name="origen">
@@ -130,7 +130,11 @@ form input:focus{border-color:var(--brand)}
 <script>
 /* ================= CONFIG ================= */
 const WHATSAPP = "34627745747";        // tu número con prefijo, sin + ni espacios
-const NETLIFY_FORMS = true;            // guarda cada lead en Netlify → Forms → funnel-primex
+// Dónde se guardan los leads. Se prueba primero guardar-lead.php (WordPress / cualquier hosting con PHP)
+// y, si no existe (por ejemplo en Netlify), se usa Netlify Forms → funnel-primex
+const LEAD_PHP = "guardar-lead.php";
+const NETLIFY_FORMS = true;
+const META_PIXEL_ID = "";              // ID de tu píxel de Meta: PageView al entrar, Lead al dejar datos, Contact al abrir WhatsApp
 const WEBHOOK_URL = "";                // opcional: Inbound Webhook de GHL, Make o Zapier
 const VIDEO_URL = "";                  // opcional: embed de YouTube/Vimeo, ej. https://www.youtube.com/embed/XXXX
 const COACH_FOTO = "";                 // opcional: tu foto para la cabecera (si no, sale el logo PRIME-X)
@@ -139,6 +143,18 @@ const PRIVACIDAD_URL = "";             // enlace a tu política de privacidad
 // Formato: ["Inicial", "Cliente PRIME-X, 42 años", "Directivo, 2 hijos", "Resultado concreto"]
 const TESTIMONIOS = [];
 /* ========================================== */
+
+function track(ev, data){ if (window.fbq) fbq('track', ev, data||{}); }
+if (META_PIXEL_ID) {
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', META_PIXEL_ID); fbq('track', 'PageView');
+}
+// Si el funnel va dentro de un iframe en una página de WordPress, le avisa de su altura para que no salga scroll
+if (window.parent !== window) {
+  new ResizeObserver(() => window.parent.postMessage({primexHeight: document.documentElement.scrollHeight}, '*')).observe(document.body);
+}
 
 if (VIDEO_URL) document.getElementById('video').innerHTML = `<iframe src="${VIDEO_URL}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
 if (COACH_FOTO) document.getElementById('coachAv').src = COACH_FOTO;
@@ -271,22 +287,20 @@ function renderLoader(){
 
 function renderForm(){
   stage.innerHTML = `<div class="fade"><div style="text-align:center"><span class="tag">✓ Diagnóstico listo</span>
-    <h2 style="font-size:22px;margin:0 0 6px">¿A quién le preparo el diagnóstico?</h2><p style="color:var(--muted)">Lo ves al momento y te lo explico yo personalmente por WhatsApp</p></div>
+    <h2 style="font-size:22px;margin:0 0 6px">¿A quién le preparo el diagnóstico?</h2><p style="color:var(--muted)">Lo ves al momento y te lo explico yo personalmente</p></div>
     <form id="lead" novalidate>
       <div class="f"><label for="n">Nombre</label><input id="n" autocomplete="given-name" placeholder="Tu nombre"></div>
-      <div class="f"><label for="w">WhatsApp</label><input id="w" type="tel" autocomplete="tel" placeholder="+34 600 000 000"></div>
       <div class="f"><label for="e">Email</label><input id="e" type="email" autocomplete="email" placeholder="tu@email.com"></div>
       <div class="err" id="err"></div>
       <button class="btn" type="submit">VER MI RESULTADO</button>
     </form>${backBtn()}</div>`;
   document.getElementById('lead').onsubmit = ev=>{
     ev.preventDefault();
-    const n=document.getElementById('n').value.trim(), w=document.getElementById('w').value.replace(/[^\d+]/g,''), e=document.getElementById('e').value.trim();
+    const n=document.getElementById('n').value.trim(), e=document.getElementById('e').value.trim();
     const err=document.getElementById('err');
     if(n.length<2) return err.textContent='Pon tu nombre';
-    if(w.replace(/\D/g,'').length<9) return err.textContent='Revisa tu número de WhatsApp';
     if(!/^\S+@\S+\.\S+$/.test(e)) return err.textContent='Revisa tu email';
-    Object.assign(answers,{nombre:n,whatsapp:w,email:e,perfil:profile().tag,fecha:new Date().toISOString(),origen:location.href});
+    Object.assign(answers,{nombre:n,email:e,perfil:profile().tag,fecha:new Date().toISOString(),origen:location.href});
     enviarLead();
     go(i+1);
   };
@@ -296,14 +310,18 @@ function enviarLead(){
   // Campos planos, una columna por dato. Las respuestas múltiples van separadas por " | "
   const fields = {};
   for (const [k,v] of Object.entries(answers)) fields[k] = Array.isArray(v) ? v.join(' | ') : v;
-  if (NETLIFY_FORMS && location.protocol.startsWith('http')) {
-    fetch(location.pathname, {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body:new URLSearchParams({'form-name':'funnel-primex','bot-field':'',...fields}).toString(), keepalive:true}).catch(()=>{});
+  const body = new URLSearchParams({'form-name':'funnel-primex','bot-field':'',...fields}).toString();
+  const headers = {'Content-Type':'application/x-www-form-urlencoded'};
+  if (location.protocol.startsWith('http')) {
+    const netlify = () => NETLIFY_FORMS && fetch(location.pathname, {method:'POST', headers, body, keepalive:true}).catch(()=>{});
+    if (LEAD_PHP) fetch(LEAD_PHP, {method:'POST', headers, body, keepalive:true})
+      .then(r => { if (!r.ok) netlify(); }).catch(netlify);
+    else netlify();
   }
   if (WEBHOOK_URL) {
-    fetch(WEBHOOK_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body:new URLSearchParams(fields).toString(), keepalive:true}).catch(()=>{});
+    fetch(WEBHOOK_URL, {method:'POST', mode:'no-cors', headers, body:new URLSearchParams(fields).toString(), keepalive:true}).catch(()=>{});
   }
+  track('Lead', {content_name:'funnel-primex', perfil:answers.perfil});
 }
 
 function profile(){
@@ -356,7 +374,7 @@ function renderResult(){
     <div class="seen">${seen.map(x=>`<div><span>${x[0]}</span><b>${esc(x[1])}</b></div>`).join('')}</div>
     <h3>Lo que incluiría tu plan PRIME-X</h3>
     <ul>${p.pts.map(x=>`<li>${x}</li>`).join('')}</ul>
-    <a class="btn" href="${wa}" target="_blank" rel="noopener">QUIERO MI PLAN POR WHATSAPP</a>
+    <a class="btn" href="${wa}" target="_blank" rel="noopener" onclick="track('Contact')">QUIERO MI PLAN POR WHATSAPP</a>
     <p style="text-align:center;font-size:13px;margin-top:10px">Te respondo yo personalmente</p></div>`;
 }
 

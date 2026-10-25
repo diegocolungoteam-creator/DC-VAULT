@@ -209,18 +209,45 @@ en `webhookUrl` y vuelve a publicar. Cada lead llega con los mismos campos
 después lo traes al CRM con **Sincronizar con GoHighLevel**. Netlify Forms y
 el webhook funcionan a la vez.
 
-## Funnel PRIME-X (`/funnel/index.html`)
+## Funnel PRIME-X (`/funnel/`)
 
-Funnel de captación para hombres de más de 35: 10 preguntas (edad,
-situación, cuándo lo nota, entreno, sueño, semana, qué ha probado,
-analítica, qué cree que es la causa y cuándo empezaría), una pantalla con los
-3 pilares de PRIME-X, un formulario y un resultado con uno de 4 perfiles
-(Motor en modo ahorro, Arranques que no llegan a meta, Haces todo bien y no
-responde, Con ganas y sin hueco). El botón final abre tu WhatsApp con el
-perfil y las respuestas clave ya escritos.
+Recorrido pensado para anuncios: **anuncio → web → test → deja nombre y
+email → resultado → WhatsApp**. Son 10 preguntas (edad, situación, cuándo lo
+nota, entreno, sueño, semana, qué ha probado, analítica, qué cree que es la
+causa y cuándo empezaría), una pantalla con los 3 pilares de PRIME-X, el
+formulario (nombre + email) y un resultado con uno de 4 perfiles. El último
+paso es el botón que abre tu WhatsApp con el perfil y las respuestas clave ya
+escritos.
 
-Se publica igual que el test: arrastra la carpeta `public/funnel` a
-<https://app.netlify.com/drop>, activa *Forms → Enable form detection* y
-vuelve a subirla. Los leads aparecen en **Forms → funnel-primex**. Lo que
-se configura (WhatsApp, webhook, vídeo, foto, testimonios reales y enlace de
-privacidad) está en el bloque `CONFIG` del `<script>`.
+Todo lo configurable del funnel está en el bloque `CONFIG` de `index.html`
+(WhatsApp, Meta Pixel, webhook, vídeo, foto, testimonios reales y enlace de
+privacidad). Lo de los leads está en `config-leads.php`.
+
+### Ponerlo en tu WordPress
+
+1. En el administrador de archivos de tu hosting (cPanel, hPanel de
+   Hostinger, Plesk...) entra en `public_html` y sube la carpeta `prime-x`
+   del zip. Queda en `https://tudominio.com/prime-x/`. WordPress no la toca
+   porque es una carpeta real, y carga más rápido que una página del tema,
+   que es lo que quieres para los anuncios.
+2. En `prime-x/config-leads.php` pon una clave larga en `CLAVE_LEADS` y
+   revisa `EMAIL_AVISO`.
+3. Cada lead se guarda en el servidor y te llega un email. Para descargarlos
+   todos en Excel: `https://tudominio.com/prime-x/ver-leads.php?clave=TU_CLAVE`.
+4. En `index.html` pon tu `META_PIXEL_ID`: lanza `PageView` al entrar,
+   `Lead` al dejar el email (el evento a optimizar en la campaña) y `Contact`
+   al abrir WhatsApp.
+
+Si prefieres que se vea dentro de una página de WordPress con tu menú, añade
+un bloque **HTML personalizado** con:
+
+```html
+<iframe id="primex" src="/prime-x/" style="width:100%;border:0;min-height:900px" loading="lazy"></iframe>
+<script>addEventListener("message",e=>{if(e.data&&e.data.primexHeight)document.getElementById("primex").style.height=e.data.primexHeight+"px"})</script>
+```
+
+### Publicarlo en Netlify (alternativa)
+
+Arrastra la carpeta a <https://app.netlify.com/drop>, activa *Forms →
+Enable form detection* y vuelve a subirla. Ahí no hay PHP, así que el funnel
+guarda los leads en **Forms → funnel-primex** automáticamente.
