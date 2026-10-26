@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tu llamada está reservada · PRIME-X</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============ CONFIGURA AQUÍ ============
+   Los vídeos, las objeciones y los casos se cambian en el bloque CONFIG del <script> de abajo
+========================================== */
+:root{
+  --bg:#f6f3fb; --card:#fff; --ink:#1c1630; --muted:#6b6480; --line:#e6e0f0;
+  --brand:#6d28d9; --brand-2:#a855f7; --brand-soft:#efe7fd; --ok:#16a34a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+.topbar{height:4px;background:linear-gradient(90deg,var(--brand),var(--brand-2),#f59e0b)}
+header{position:sticky;top:0;z-index:5;display:flex;justify-content:center;padding:10px 16px;background:rgba(246,243,251,.85);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.pill{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 16px 6px 6px;font-size:14px;font-weight:600;box-shadow:0 2px 10px rgba(60,20,120,.06)}
+.pill img{width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0}
+main{max-width:720px;margin:0 auto;padding:26px 16px 50px}
+section{margin-bottom:34px}
+.center{text-align:center}
+.ok-badge{display:inline-flex;align-items:center;gap:8px;background:#dcfce7;color:#166534;font-weight:700;font-size:14px;padding:6px 14px;border-radius:99px;margin-bottom:14px}
+.ok-badge i{width:18px;height:18px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-style:normal;font-size:11px}
+h1{font-size:clamp(26px,5.5vw,36px);line-height:1.15;font-weight:800;letter-spacing:-.02em}
+h1 span,h2 span{color:var(--brand)}
+h2{font-size:clamp(21px,4.5vw,26px);line-height:1.2;font-weight:800;letter-spacing:-.01em;margin-bottom:6px}
+.sub{color:var(--muted);font-size:16px;margin-top:10px}
+.steps{display:flex;justify-content:center;gap:8px;margin:18px 0 18px;flex-wrap:wrap}
+.step{font-size:13px;font-weight:700;padding:6px 12px;border-radius:99px;background:#fff;border:1px solid var(--line);color:var(--muted)}
+.step.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.step.done{color:var(--ok);border-color:#bbf7d0;background:#f0fdf4}
+.video{position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#2a1f45;box-shadow:0 10px 30px rgba(60,20,120,.18)}
+.video iframe,.video video{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+.video.vertical{aspect-ratio:9/16;max-width:380px;margin:0 auto}
+.ph{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-weight:600;font-size:14px;text-align:center;padding:20px;background:radial-gradient(circle at 30% 30%,#5b21b6,#1c1630)}
+.play{width:60px;height:60px;border-radius:50%;background:#fff;display:grid;place-items:center;margin:0 auto 10px}
+.play:after{content:"";border-left:17px solid var(--brand);border-top:10px solid transparent;border-bottom:10px solid transparent;margin-left:5px}
+.warn{margin-top:12px;font-size:14px;color:var(--muted);text-align:center}
+.warn b{color:var(--ink)}
+.card{background:var(--card);border-radius:16px;border-top:4px solid var(--brand);padding:22px 18px;box-shadow:0 10px 30px rgba(60,20,120,.08)}
+.checklist{list-style:none;margin-top:12px}
+.checklist li{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.checklist li:last-child{border-bottom:0}
+.checklist .n{flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;font-weight:800;font-size:13px}
+.checklist b{display:block;font-size:15px}
+.checklist small{color:var(--muted);font-size:14px}
+.objs{display:grid;gap:12px;margin-top:14px}
+.obj{background:#fff;border:1.5px solid var(--line);border-radius:14px;overflow:hidden}
+.obj summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:15px 16px;font-weight:700;font-size:16px}
+.obj summary::-webkit-details-marker{display:none}
+.obj summary .num{flex-shrink:0;width:30px;height:30px;border-radius:9px;background:var(--brand);color:#fff;display:grid;place-items:center;font-size:14px}
+.obj summary .chev{margin-left:auto;color:var(--muted);transition:transform .2s}
+.obj[open] summary .chev{transform:rotate(180deg)}
+.obj[open]{border-color:var(--brand)}
+.obj .body{padding:0 16px 16px}
+.obj .body p{color:var(--muted);font-size:15px;margin-top:10px}
+.cases{display:grid;gap:14px;margin-top:14px}
+@media(min-width:620px){.cases{grid-template-columns:1fr 1fr}}
+.case{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 20px rgba(60,20,120,.08)}
+.case .ba{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--line)}
+.case .ba figure{position:relative;aspect-ratio:3/4;background:var(--brand-soft)}
+.case .ba img{width:100%;height:100%;object-fit:cover;display:block}
+.case .ba figcaption{position:absolute;left:8px;top:8px;background:rgba(28,22,48,.75);color:#fff;font-size:11px;font-weight:700;letter-spacing:.06em;padding:3px 8px;border-radius:99px}
+.case .ba .empty{position:absolute;inset:0;display:grid;place-items:center;color:var(--brand);font-size:13px;font-weight:600;text-align:center;padding:10px}
+.case .txt{padding:14px 16px}
+.case b{display:block;font-size:15px}
+.case small{color:var(--muted);font-size:13px}
+.case .res{color:var(--brand);font-weight:700;font-size:15px;margin-top:4px}
+.case .quote{color:var(--muted);font-size:14px;margin-top:6px;font-style:italic}
+.btn{display:block;width:100%;border:0;border-radius:12px;padding:16px;font:inherit;font-weight:800;font-size:16px;letter-spacing:.02em;color:#fff;background:linear-gradient(90deg,var(--brand),var(--brand-2));cursor:pointer;margin-top:16px;box-shadow:0 8px 20px rgba(109,40,217,.3);text-decoration:none;text-align:center}
+.btn.ghost{background:#fff;color:var(--brand);border:1.5px solid var(--brand);box-shadow:none}
+.final p{color:var(--muted);margin-top:8px}
+.legal{max-width:720px;margin:0 auto;font-size:12px;color:var(--muted);text-align:center;padding:0 16px 30px}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div class="topbar"></div>
+<header><div class="pill"><img id="coachAv" src="../logo-primex.png" alt="PRIME-X">Diego Colungo · PRIME-X para hombres +35</div></header>
+
+<main>
+  <!-- 1. Confirmación + vídeo principal -->
+  <section class="center">
+    <div class="ok-badge"><i>✓</i>Tu llamada está reservada</div>
+    <h1>Antes de la llamada, <span>mira este vídeo</span></h1>
+    <p class="sub">Dura unos minutos y es lo que hace que la llamada sirva de verdad. Te explico cómo trabajamos y qué vamos a ver de tu caso</p>
+    <div class="steps"><span class="step done">✓ Test hecho</span><span class="step done">✓ Llamada reservada</span><span class="step on">3 · Mira el vídeo</span></div>
+    <div id="v-main"></div>
+    <p class="warn">Si no lo ves antes, <b>la llamada se queda corta</b> y perdemos la mitad del tiempo en lo básico</p>
+  </section>
+
+  <!-- 2. Checklist -->
+  <section class="card">
+    <h2>Para que la llamada te sirva</h2>
+    <ul class="checklist">
+      <li><span class="n">1</span><div><b>Busca el email de confirmación</b><small>Ahí tienes el enlace de Google Meet. Añádelo a tu calendario para que no se te pase</small></div></li>
+      <li><span class="n">2</span><div><b>Conéctate desde un sitio tranquilo</b><small>Con cámara, sin prisas y sin ir conduciendo</small></div></li>
+      <li><span class="n">3</span><div><b>Ten a mano tu última analítica si la tienes</b><small>Si no tienes, no pasa nada. Te digo qué pedir</small></div></li>
+      <li><span class="n">4</span><div><b>Si decides con tu pareja, que esté contigo</b><small>Así resolvemos las dudas de los dos en la misma llamada</small></div></li>
+    </ul>
+  </section>
+
+  <!-- 3. Objeciones -->
+  <section id="s-objs">
+    <div class="center"><h2>Las 4 dudas que <span>más me preguntan</span></h2>
+    <p class="sub" style="margin-top:4px">Si alguna te suena, dale al play antes de la llamada</p></div>
+    <div class="objs" id="objs"></div>
+  </section>
+
+  <!-- 4. Cambios físicos -->
+  <section id="s-cases">
+    <div class="center"><h2>Hombres como tú, <span>con su plan PRIME-X</span></h2>
+    <p class="sub" style="margin-top:4px">Con trabajo, familia y poco tiempo. Igual que tú</p></div>
+    <div class="cases" id="cases"></div>
+  </section>
+
+  <!-- 5. Cierre -->
+  <section class="card center final">
+    <h2>Nos vemos en la llamada</h2>
+    <p>Si te surge algo y no puedes, avísame por WhatsApp y la movemos</p>
+    <a class="btn ghost" id="wa" target="_blank" rel="noopener">CAMBIAR LA HORA POR WHATSAPP</a>
+  </section>
+</main>
+
+<p class="legal">Los resultados son individuales y se comparten con permiso de cada cliente. PRIME-X es un servicio de entrenamiento y nutrición, no sustituye el consejo de tu médico</p>
+
+<script>
+/* ================= CONFIG ================= */
+const WHATSAPP = "34627745747";
+const META_PIXEL_ID = "";   // el mismo píxel del funnel. Aquí lanza el evento Schedule (cita reservada)
+
+// Vídeos: vale un enlace de YouTube, Vimeo o Loom, o un .mp4 subido a tu WordPress
+// vertical: true si lo grabas en vertical con el móvil
+const VIDEO_PRINCIPAL = { url: "", vertical: false, aviso: "Vídeo principal: qué vamos a ver en la llamada y cómo trabajamos en PRIME-X" };
+
+// Las 4 objeciones. Cambia los títulos para que coincidan con tus guiones y pega cada vídeo
+const OBJECIONES = [
+  { titulo: "Ya lo he probado todo y nada me ha funcionado", texto: "Por qué esta vez no es otra dieta ni otra rutina", url: "", vertical: false },
+  { titulo: "No tengo tiempo: trabajo, hijos, viajes", texto: "Cómo se monta el plan sobre tu semana real", url: "", vertical: false },
+  { titulo: "¿Esto va de hormonas o de tomar algo?", texto: "Qué hacemos con tu analítica y qué no hacemos nunca", url: "", vertical: false },
+  { titulo: "¿Con mi edad todavía se puede?", texto: "Qué cambia a partir de los 35 y por qué tiene solución", url: "", vertical: false },
+];
+
+// Cambios físicos REALES (con permiso del cliente). Sube las fotos a la carpeta de esta página o a tu WordPress
+// Mientras esté vacío, la sección no se muestra
+const CASOS = [
+  // { nombre: "Javier, 44 años", perfil: "Autónomo, 2 hijos", resultado: "−9 kg y −11 cm de cintura en 16 semanas", antes: "javier-antes.jpg", despues: "javier-despues.jpg", frase: "" },
+];
+/* ========================================== */
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function embedUrl(url){
+  let m;
+  if ((m = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{11})/))) return `https://www.youtube.com/embed/${m[1]}?rel=0&modestbranding=1&playsinline=1`;
+  if ((m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/))) return `https://player.vimeo.com/video/${m[1]}`;
+  if ((m = url.match(/loom\.com\/(?:share|embed)\/(\w+)/))) return `https://www.loom.com/embed/${m[1]}`;
+  return url;
+}
+function videoHTML(v){
+  const cls = 'video' + (v.vertical ? ' vertical' : '');
+  if (!v.url) return `<div class="${cls}"><div class="ph"><div><div class="play"></div>${esc(v.aviso || 'Pega aquí el enlace del vídeo')}</div></div></div>`;
+  if (/\.(mp4|webm|mov)(\?|$)/i.test(v.url)) return `<div class="${cls}"><video src="${esc(v.url)}" controls playsinline preload="metadata"></video></div>`;
+  return `<div class="${cls}"><iframe src="${esc(embedUrl(v.url))}" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen loading="lazy"></iframe></div>`;
+}
+
+$('v-main').innerHTML = videoHTML(VIDEO_PRINCIPAL);
+
+$('objs').innerHTML = OBJECIONES.map((o, k) => `
+  <details class="obj"${k === 0 ? ' open' : ''}>
+    <summary><span class="num">${k + 1}</span><span>${esc(o.titulo)}</span><span class="chev">▾</span></summary>
+    <div class="body">${videoHTML({ ...o, aviso: 'Vídeo: ' + o.titulo })}${o.texto ? `<p>${esc(o.texto)}</p>` : ''}</div>
+  </details>`).join('');
+
+// Al abrir una duda se pausan los vídeos .mp4 de las demás
+document.querySelectorAll('.obj').forEach(d => d.addEventListener('toggle', () => {
+  if (!d.open) d.querySelectorAll('video').forEach(v => v.pause());
+}));
+
+// ?demo en la URL enseña huecos de ejemplo para ver cómo queda la sección de casos
+const casos = CASOS.length ? CASOS : (location.search.includes('demo')
+  ? [1, 2].map(n => ({ nombre: `Cliente ${n}, edad`, perfil: 'Trabajo y familia', resultado: 'Resultado concreto en X semanas', frase: 'Una frase suya, con sus palabras' })) : []);
+if (!casos.length) $('s-cases').classList.add('hide');
+$('cases').innerHTML = casos.map(c => `
+  <div class="case">
+    <div class="ba">
+      <figure>${c.antes ? `<img src="${esc(c.antes)}" alt="Antes" loading="lazy">` : '<div class="empty">Foto antes</div>'}<figcaption>ANTES</figcaption></figure>
+      <figure>${c.despues ? `<img src="${esc(c.despues)}" alt="Después" loading="lazy">` : '<div class="empty">Foto después</div>'}<figcaption>DESPUÉS</figcaption></figure>
+    </div>
+    <div class="txt"><b>${esc(c.nombre)}</b><small>${esc(c.perfil || '')}</small><div class="res">${esc(c.resultado || '')}</div>${c.frase ? `<div class="quote">“${esc(c.frase)}”</div>` : ''}</div>
+  </div>`).join('');
+
+$('wa').href = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent('Hola Diego, tengo reservada la llamada de PRIME-X y necesito cambiar la hora')}`;
+
+if (META_PIXEL_ID) {
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', META_PIXEL_ID); fbq('track', 'PageView'); fbq('track', 'Schedule');
+}
+</script>
+</body>
+</html>

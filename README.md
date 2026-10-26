@@ -246,6 +246,21 @@ un bloque **HTML personalizado** con:
 <script>addEventListener("message",e=>{if(e.data&&e.data.primexHeight)document.getElementById("primex").style.height=e.data.primexHeight+"px"})</script>
 ```
 
+### Página de después de reservar (`/funnel/reservado/`)
+
+Va en la misma carpeta: `https://tudominio.com/prime-x/reservado/`. En tu
+app de reservas pon esa dirección como **redirección después de reservar**.
+
+Tiene, en este orden: confirmación de la cita y el vídeo principal, lo que
+tiene que preparar para la llamada, las 4 dudas más habituales (cada una con
+su vídeo, desplegables), los cambios físicos de clientes (antes y después) y
+un botón de WhatsApp para cambiar la hora. Todo se rellena en el bloque
+`CONFIG` del `<script>`: los vídeos admiten enlaces de YouTube, Vimeo o Loom,
+o un `.mp4` subido a WordPress (con `vertical: true` si están grabados con el
+móvil en vertical). La sección de casos no aparece hasta que añadas alguno
+en `CASOS`; para ver cómo quedará abre la página con `?demo` al final. Con el
+`META_PIXEL_ID` puesto lanza el evento `Schedule` de Meta.
+
 ### Publicarlo en Netlify (alternativa)
 
 Arrastra la carpeta a <https://app.netlify.com/drop>, activa *Forms →
