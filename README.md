@@ -1,4 +1,4 @@
-# Vault CRM
+# DC GROUP
 
 CRM local para gestionar clientes, pagos, revisiones y contabilidad desde tu Mac,
 sustituyendo las hojas de Google Sheets sueltas por una sola herramienta.

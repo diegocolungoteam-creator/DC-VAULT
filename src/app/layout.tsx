@@ -3,7 +3,7 @@ import Link from "next/link";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Vault CRM",
+  title: "DC GROUP",
   description: "Gestión de clientes, pagos, revisiones y contabilidad",
 };
 
@@ -25,7 +25,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex">
         <aside className="hidden md:flex md:w-56 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)] p-4">
           <div className="mb-6 px-2">
-            <div className="text-lg font-semibold">Vault CRM</div>
+            <div className="text-lg font-semibold">DC GROUP</div>
             <div className="text-xs text-[var(--muted)]">Gestión de clientes</div>
           </div>
           <nav className="flex flex-col gap-1">
@@ -42,7 +42,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </aside>
         <div className="flex-1 min-w-0">
           <header className="flex md:hidden items-center justify-between border-b border-[var(--border)] bg-[var(--surface)] px-4 py-3">
-            <div className="font-semibold">Vault CRM</div>
+            <div className="font-semibold">DC GROUP</div>
           </header>
           <nav className="flex md:hidden gap-1 overflow-x-auto border-b border-[var(--border)] bg-[var(--surface)] px-2 py-2">
             {NAV.map((item) => (
