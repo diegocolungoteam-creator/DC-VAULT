@@ -1,4 +1,19 @@
-export type ClientStatus = "activo" | "inactivo" | "baja";
+export type ClientStatus = "activo" | "alarma_roja" | "congelado" | "inactivo" | "baja";
+
+export const CLIENT_STATUSES: { value: ClientStatus; label: string }[] = [
+  { value: "activo", label: "Activo" },
+  { value: "alarma_roja", label: "🚨 Alarma roja" },
+  { value: "congelado", label: "Congelado / pausa" },
+  { value: "inactivo", label: "Inactivo" },
+  { value: "baja", label: "Baja" },
+];
+
+// Clients in alarma roja are still paying clients: they count as active everywhere.
+export const ACTIVE_STATUSES_SQL = "('activo', 'alarma_roja')";
+
+export function isActiveStatus(status: ClientStatus): boolean {
+  return status === "activo" || status === "alarma_roja";
+}
 export type BillingCycle = "mensual" | "trimestral" | "semestral" | "anual";
 export type RevisionStatus = "pendiente" | "realizada" | "cancelada";
 export type TaskStatus = "pendiente" | "completada";
@@ -19,6 +34,12 @@ export interface Client {
   source: string | null;
   contracted_total: number | null;
   pending_amount: number | null;
+  birth_date: string | null;
+  alarm_date: string | null;
+  frozen_date: string | null;
+  frozen_info: string | null;
+  end_date: string | null;
+  end_reason: string | null;
   created_at: string;
 }
 
@@ -65,6 +86,32 @@ export interface Revision {
   created_at: string;
 }
 
+export interface BodyMeasurement {
+  id: number;
+  client_id: number;
+  date: string;
+  weight: number | null;
+  body_fat: number | null;
+  waist: number | null;
+  hip: number | null;
+  chest: number | null;
+  arm: number | null;
+  thigh: number | null;
+  photos_url: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export const MEASUREMENT_FIELDS = [
+  { key: "weight", label: "Peso", unit: "kg" },
+  { key: "body_fat", label: "% grasa", unit: "%" },
+  { key: "waist", label: "Cintura", unit: "cm" },
+  { key: "hip", label: "Cadera", unit: "cm" },
+  { key: "chest", label: "Pecho", unit: "cm" },
+  { key: "arm", label: "Brazo", unit: "cm" },
+  { key: "thigh", label: "Muslo", unit: "cm" },
+] as const satisfies readonly { key: keyof BodyMeasurement; label: string; unit: string }[];
+
 export interface Task {
   id: number;
   title: string;
@@ -106,3 +153,40 @@ export const LEAD_SOURCES = [
   "Referidos",
   "Otro",
 ] as const;
+
+export type CallOutcome = "pendiente" | "cerrada" | "seguimiento" | "perdida" | "no_venta";
+
+export const CALL_OUTCOMES: { value: CallOutcome; label: string }[] = [
+  { value: "cerrada", label: "Cerrada" },
+  { value: "seguimiento", label: "Seguimiento" },
+  { value: "perdida", label: "Perdida" },
+  { value: "no_venta", label: "No es venta" },
+  { value: "pendiente", label: "Sin analizar" },
+];
+
+export interface SalesCall {
+  id: number;
+  fathom_recording_id: string;
+  title: string;
+  date: string;
+  started_at: string | null;
+  duration_min: number | null;
+  url: string | null;
+  closer_name: string | null;
+  closer_email: string | null;
+  prospect_name: string | null;
+  prospect_email: string | null;
+  client_id: number | null;
+  summary: string | null;
+  transcript: string | null;
+  closer_talk_pct: number | null;
+  closer_questions: number | null;
+  outcome: CallOutcome;
+  outcome_source: "auto" | "claude" | "manual";
+  amount: number | null;
+  score: number | null;
+  analysis: string | null;
+  analyzed_at: string | null;
+  notes: string | null;
+  created_at: string;
+}

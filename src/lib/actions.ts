@@ -22,14 +22,22 @@ export interface ClientInput {
   billing_cycle: BillingCycle;
   renewal_date?: string | null;
   source?: string | null;
+  birth_date?: string | null;
+  alarm_date?: string | null;
+  frozen_date?: string | null;
+  frozen_info?: string | null;
+  end_date?: string | null;
+  end_reason?: string | null;
 }
 
 export async function createClientAction(formData: FormData) {
   const db = getDb();
   const input = parseClientForm(formData);
   db.prepare(
-    `INSERT INTO clients (name, email, phone, address, notes, status, enrollment_date, plan, fee, billing_cycle, renewal_date, source)
-     VALUES (:name, :email, :phone, :address, :notes, :status, :enrollment_date, :plan, :fee, :billing_cycle, :renewal_date, :source)`
+    `INSERT INTO clients (name, email, phone, address, notes, status, enrollment_date, plan, fee, billing_cycle, renewal_date, source,
+       birth_date, alarm_date, frozen_date, frozen_info, end_date, end_reason)
+     VALUES (:name, :email, :phone, :address, :notes, :status, :enrollment_date, :plan, :fee, :billing_cycle, :renewal_date, :source,
+       :birth_date, :alarm_date, :frozen_date, :frozen_info, :end_date, :end_reason)`
   ).run(input as unknown as Record<string, string | number | null>);
   revalidatePath("/clientes");
   revalidatePath("/");
@@ -42,7 +50,9 @@ export async function updateClientAction(id: number, formData: FormData) {
   db.prepare(
     `UPDATE clients SET name=:name, email=:email, phone=:phone, address=:address, notes=:notes,
      status=:status, enrollment_date=:enrollment_date, plan=:plan, fee=:fee,
-     billing_cycle=:billing_cycle, renewal_date=:renewal_date, source=:source WHERE id=:id`
+     billing_cycle=:billing_cycle, renewal_date=:renewal_date, source=:source,
+     birth_date=:birth_date, alarm_date=:alarm_date, frozen_date=:frozen_date, frozen_info=:frozen_info,
+     end_date=:end_date, end_reason=:end_reason WHERE id=:id`
   ).run({ ...(input as unknown as Record<string, string | number | null>), id });
   revalidatePath("/clientes");
   revalidatePath(`/clientes/${id}`);
@@ -60,19 +70,29 @@ export async function deleteClientAction(id: number) {
 
 function parseClientForm(formData: FormData): ClientInput {
   const feeRaw = formData.get("fee") as string;
+  const status = (formData.get("status") as ClientStatus) || "activo";
+  // Moving a client into alarma roja, pausa or baja without a date stamps it with today.
+  const dateFor = (field: string, forStatus: ClientStatus) =>
+    (formData.get(field) as string) || (status === forStatus ? todayISO() : null);
   return {
     name: String(formData.get("name") ?? "").trim(),
     email: (formData.get("email") as string) || null,
     phone: (formData.get("phone") as string) || null,
     address: (formData.get("address") as string) || null,
     notes: (formData.get("notes") as string) || null,
-    status: (formData.get("status") as ClientStatus) || "activo",
+    status,
     enrollment_date: (formData.get("enrollment_date") as string) || null,
     plan: (formData.get("plan") as string) || null,
     fee: feeRaw ? Number(feeRaw) : null,
     billing_cycle: (formData.get("billing_cycle") as BillingCycle) || "mensual",
     renewal_date: (formData.get("renewal_date") as string) || null,
     source: (formData.get("source") as string) || null,
+    birth_date: (formData.get("birth_date") as string) || null,
+    alarm_date: dateFor("alarm_date", "alarma_roja"),
+    frozen_date: dateFor("frozen_date", "congelado"),
+    frozen_info: (formData.get("frozen_info") as string) || null,
+    end_date: dateFor("end_date", "baja"),
+    end_reason: (formData.get("end_reason") as string) || null,
   };
 }
 
@@ -226,6 +246,40 @@ export async function deleteRevisionAction(id: number, clientId: number) {
   revalidatePath("/revisiones");
   revalidatePath(`/clientes/${clientId}`);
   revalidatePath("/");
+}
+
+// ---------- Cambios físicos ----------
+
+export async function createMeasurementAction(formData: FormData) {
+  const db = getDb();
+  const clientId = Number(formData.get("client_id"));
+  const num = (field: string) => {
+    const raw = String(formData.get(field) ?? "").replace(",", ".").trim();
+    return raw ? Number(raw) : null;
+  };
+  db.prepare(
+    `INSERT INTO body_measurements (client_id, date, weight, body_fat, waist, hip, chest, arm, thigh, photos_url, notes)
+     VALUES (:client_id, :date, :weight, :body_fat, :waist, :hip, :chest, :arm, :thigh, :photos_url, :notes)`
+  ).run({
+    client_id: clientId,
+    date: String(formData.get("date") || todayISO()),
+    weight: num("weight"),
+    body_fat: num("body_fat"),
+    waist: num("waist"),
+    hip: num("hip"),
+    chest: num("chest"),
+    arm: num("arm"),
+    thigh: num("thigh"),
+    photos_url: (formData.get("photos_url") as string) || null,
+    notes: (formData.get("notes") as string) || null,
+  });
+  revalidatePath(`/clientes/${clientId}`);
+}
+
+export async function deleteMeasurementAction(id: number, clientId: number) {
+  const db = getDb();
+  db.prepare("DELETE FROM body_measurements WHERE id = ?").run(id);
+  revalidatePath(`/clientes/${clientId}`);
 }
 
 // ---------- Tasks / avisos ----------

@@ -91,6 +91,51 @@ function migrate(db: DatabaseSync) {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS sales_calls (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      fathom_recording_id TEXT NOT NULL UNIQUE,
+      title TEXT NOT NULL,
+      date TEXT NOT NULL,
+      started_at TEXT,
+      duration_min REAL,
+      url TEXT,
+      closer_name TEXT,
+      closer_email TEXT,
+      prospect_name TEXT,
+      prospect_email TEXT,
+      client_id INTEGER REFERENCES clients(id) ON DELETE SET NULL,
+      summary TEXT,
+      transcript TEXT,
+      closer_talk_pct REAL,
+      closer_questions INTEGER,
+      outcome TEXT NOT NULL DEFAULT 'pendiente',
+      outcome_source TEXT NOT NULL DEFAULT 'auto',
+      amount REAL,
+      score REAL,
+      analysis TEXT,
+      analyzed_at TEXT,
+      notes TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS body_measurements (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      client_id INTEGER NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+      date TEXT NOT NULL,
+      weight REAL,
+      body_fat REAL,
+      waist REAL,
+      hip REAL,
+      chest REAL,
+      arm REAL,
+      thigh REAL,
+      photos_url TEXT,
+      notes TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_body_measurements_client ON body_measurements(client_id, date);
+    CREATE INDEX IF NOT EXISTS idx_sales_calls_date ON sales_calls(date);
     CREATE INDEX IF NOT EXISTS idx_payments_client ON payments(client_id);
     CREATE INDEX IF NOT EXISTS idx_payments_date ON payments(date);
     CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date);
@@ -112,6 +157,11 @@ function migrate(db: DatabaseSync) {
   }
   if (!clientColumns.some((c) => c.name === "pending_amount")) {
     db.exec("ALTER TABLE clients ADD COLUMN pending_amount REAL");
+  }
+  for (const col of ["birth_date", "alarm_date", "frozen_date", "frozen_info", "end_date", "end_reason"]) {
+    if (!clientColumns.some((c) => c.name === col)) {
+      db.exec(`ALTER TABLE clients ADD COLUMN ${col} TEXT`);
+    }
   }
 }
 

@@ -3,7 +3,7 @@ import { getLastRevisionByClient, listClients } from "@/lib/queries";
 import { ClientStatusBadge } from "@/components/Badges";
 import { GhlSyncButton } from "@/components/GhlSyncButton";
 import { daysBetween, formatCurrencyEs, formatDateEs, todayISO } from "@/lib/dates";
-import { REVISION_ALERT_THRESHOLD_DAYS, type ClientStatus } from "@/lib/types";
+import { CLIENT_STATUSES, REVISION_ALERT_THRESHOLD_DAYS, type ClientStatus } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -43,9 +43,11 @@ export default async function ClientesPage({
         />
         <select name="status" defaultValue={status} className="input w-auto">
           <option value="todos">Todos los estados</option>
-          <option value="activo">Activo</option>
-          <option value="inactivo">Inactivo</option>
-          <option value="baja">Baja</option>
+          {CLIENT_STATUSES.map((s) => (
+            <option key={s.value} value={s.value}>
+              {s.label}
+            </option>
+          ))}
         </select>
         <button type="submit" className="btn btn-secondary">
           Filtrar

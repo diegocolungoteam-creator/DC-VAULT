@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+insights.json
+.last_run
+engine.log
+*.json.bak

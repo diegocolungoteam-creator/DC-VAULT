@@ -1,0 +1,6 @@
+[
+  {"id": "hook", "type": "hook", "text": "Entrenas 5 días y no cambias", "highlight": "no cambias", "start": 0.4, "end": 3.5, "slot": "top"},
+  {"id": "strike", "type": "strike", "wrong": "Más cardio", "right": "Más fuerza", "start": 7.3, "end": 10.3, "slot": "top"},
+  {"id": "tres", "type": "number", "label": "3 cosas", "items": ["Duerme 7 h", "Proteína en cada comida", "3 días de pesas"], "at": [11.5, 12.9, 14.9], "start": 10.4, "end": 16.6, "slot": "top"},
+  {"id": "cta", "type": "cta", "keyword": "PLAN", "lead": "Comenta", "sub": "y te mando la guía", "start": 16.7, "end": 20.3, "slot": "top"}
+]

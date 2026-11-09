@@ -1,4 +1,4 @@
-# Vault CRM
+# DC GROUP
 
 CRM local para gestionar clientes, pagos, revisiones y contabilidad desde tu Mac,
 sustituyendo las hojas de Google Sheets sueltas por una sola herramienta.
@@ -25,6 +25,11 @@ de tu Mac y no necesitas conexión a internet para usarla una vez instalada.
   TikTok, orgánico...), leads, llamadas agendadas y cierres, con coste por
   lead/llamada/cierre y coste por cliente según de dónde viene. Los clientes
   llevan un campo "fuente" para poder atribuirlos a un canal.
+- **Llamadas (Fathom + Claude)**: trae tus llamadas de venta grabadas con
+  Fathom y te da un panel tipo "closer": tasa de cierre, facturación, ticket
+  medio, duración, cuánto hablas tú frente al prospecto, objeciones más
+  frecuentes y nota por fase de la llamada (conexión, descubrimiento, dolor,
+  presentación, cierre), con análisis y mejoras concretas por llamada.
 - **Importar**: sube tus hojas de Google Sheets exportadas como CSV (clientes,
   pagos, gastos, revisiones) y mapea las columnas a los campos del CRM.
 - **Resumen (dashboard)**: clientes activos, renovaciones próximas o vencidas,
@@ -179,6 +184,42 @@ El sistema busca automáticamente una columna de nombre (`Nombre`, `Name` o
 `Cliente`) y una de fecha de check-in (`Last_Checkin_At`, `checkin`,
 `fecha_checkin` o `ultimo_checkin`) en la primera fila de la hoja.
 
+## Analizar llamadas de venta (Fathom + Claude)
+
+La sección **Llamadas** (`/llamadas`) funciona en dos pasos:
+
+1. **Sincronizar con Fathom**: trae tus grabaciones (resumen y transcripción)
+   a la base de datos local. Es incremental y seguro de repetir: solo pide a
+   Fathom lo grabado desde la última llamada sincronizada. Ya con esto ves
+   duración, % que hablas tú y nº de preguntas que haces.
+2. **Analizar con Claude**: lee cada transcripción y detecta si fue venta,
+   el resultado (cerrada / seguimiento / perdida), importe y plan, las
+   objeciones (y si las resolviste) y una nota por fase con qué mejorar.
+   Analiza 5 llamadas por clic; pulsa otra vez si quedan pendientes. Cada
+   llamada solo se analiza una vez (puedes forzarlo con "Volver a analizar"
+   en su ficha).
+
+Si Claude se equivoca en el resultado o el importe, cámbialo en la ficha de
+la llamada: lo que fijes a mano no se sobrescribe al volver a analizar.
+
+Para configurarlo:
+
+1. En Fathom: **Settings → API Access → Generate API Key** y copia la clave.
+2. En [console.anthropic.com](https://console.anthropic.com/): crea una API
+   key de Claude (Settings → API Keys). Analizar una llamada de ~1 hora
+   cuesta unos 10-15 céntimos.
+3. Añade a tu `.env.local`:
+
+   ```
+   FATHOM_API_KEY=xxxxxxxx
+   ANTHROPIC_API_KEY=sk-ant-xxxxxxxx
+   ```
+
+4. Reinicia `npm run dev` y ve a **Llamadas**.
+
+Solo hace falta `ANTHROPIC_API_KEY` para el paso 2; la sincronización con
+Fathom funciona sin ella.
+
 ## Estructura del proyecto
 
 ```
@@ -198,3 +239,96 @@ data/
 
 Next.js (App Router) + TypeScript + Tailwind CSS + SQLite (`node:sqlite`),
 sin dependencias externas de base de datos ni servicios en la nube.
+
+## Test de captación (`/test/index.html`)
+
+Página independiente tipo "quiz" (6 preguntas, diagnóstico por áreas:
+progresión, intensidad, calorías, proteína, descanso y constancia) para
+captar leads desde anuncios o la bio. Con `npm run dev` se abre en
+`http://localhost:3000/test/index.html`, pero la carpeta `public/test` es
+autónoma (HTML + logo) y se publica tal cual en cualquier hosting estático.
+
+Todo se personaliza en los bloques `CONFIG` y `QUESTIONS` al principio del
+`<script>`: marca, logo, textos, preguntas y el WhatsApp del botón final
+(`whatsapp`), que abre el chat con un resumen del resultado ya escrito:
+nombre, puntuación, estado de cada área y dónde se le escapa el progreso.
+
+### Publicarlo en Netlify y recoger los leads
+
+1. Entra en <https://app.netlify.com/drop> y arrastra la carpeta
+   `public/test` entera. Te da una URL pública al momento (luego puedes
+   cambiarle el nombre o conectar tu dominio en *Domain management*).
+2. En el sitio: **Forms → Enable form detection** y vuelve a arrastrar la
+   carpeta (Netlify solo detecta el formulario al publicar).
+3. Cada persona que termina el test aparece en **Forms → test-primex** con
+   nombre, email, WhatsApp, puntuación, áreas flojas y cada respuesta.
+   Puedes exportarlo a CSV y activar un aviso por email en
+   *Forms → Form notifications*.
+
+El plan gratuito de Netlify incluye 100 envíos de formulario al mes.
+
+### Enviar los leads a GoHighLevel (opcional)
+
+Crea en GHL un workflow con el disparador **Inbound Webhook**, copia su URL
+en `webhookUrl` y vuelve a publicar. Cada lead llega con los mismos campos
+(form-urlencoded) para mapearlos al contacto y lanzar tus automatizaciones;
+después lo traes al CRM con **Sincronizar con GoHighLevel**. Netlify Forms y
+el webhook funcionan a la vez.
+
+## Funnel PRIME-X (`/funnel/`)
+
+Recorrido pensado para anuncios: **anuncio → web → test → deja nombre y
+email → resultado → WhatsApp**. Son 10 preguntas (edad, situación, cuándo lo
+nota, entreno, sueño, semana, qué ha probado, analítica, qué cree que es la
+causa y cuándo empezaría), una pantalla con los 3 pilares de PRIME-X, el
+formulario (nombre + email) y un resultado con uno de 4 perfiles. El último
+paso es el botón que abre tu WhatsApp con el perfil y las respuestas clave ya
+escritos.
+
+Todo lo configurable del funnel está en el bloque `CONFIG` de `index.html`
+(WhatsApp, Meta Pixel, webhook, vídeo, foto, testimonios reales y enlace de
+privacidad). Lo de los leads está en `config-leads.php`.
+
+### Ponerlo en tu WordPress
+
+1. En el administrador de archivos de tu hosting (cPanel, hPanel de
+   Hostinger, Plesk...) entra en `public_html` y sube la carpeta `prime-x`
+   del zip. Queda en `https://tudominio.com/prime-x/`. WordPress no la toca
+   porque es una carpeta real, y carga más rápido que una página del tema,
+   que es lo que quieres para los anuncios.
+2. En `prime-x/config-leads.php` pon una clave larga en `CLAVE_LEADS` y
+   revisa `EMAIL_AVISO`.
+3. Cada lead se guarda en el servidor y te llega un email. Para descargarlos
+   todos en Excel: `https://tudominio.com/prime-x/ver-leads.php?clave=TU_CLAVE`.
+4. En `index.html` pon tu `META_PIXEL_ID`: lanza `PageView` al entrar,
+   `Lead` al dejar el email (el evento a optimizar en la campaña) y `Contact`
+   al abrir WhatsApp.
+
+Si prefieres que se vea dentro de una página de WordPress con tu menú, añade
+un bloque **HTML personalizado** con:
+
+```html
+<iframe id="primex" src="/prime-x/" style="width:100%;border:0;min-height:900px" loading="lazy"></iframe>
+<script>addEventListener("message",e=>{if(e.data&&e.data.primexHeight)document.getElementById("primex").style.height=e.data.primexHeight+"px"})</script>
+```
+
+### Página de después de reservar (`/funnel/reservado/`)
+
+Va en la misma carpeta: `https://tudominio.com/prime-x/reservado/`. En tu
+app de reservas pon esa dirección como **redirección después de reservar**.
+
+Tiene, en este orden: confirmación de la cita y el vídeo principal, lo que
+tiene que preparar para la llamada, las 4 dudas más habituales (cada una con
+su vídeo, desplegables), los cambios físicos de clientes (antes y después) y
+un botón de WhatsApp para cambiar la hora. Todo se rellena en el bloque
+`CONFIG` del `<script>`: los vídeos admiten enlaces de YouTube, Vimeo o Loom,
+o un `.mp4` subido a WordPress (con `vertical: true` si están grabados con el
+móvil en vertical). La sección de casos no aparece hasta que añadas alguno
+en `CASOS`; para ver cómo quedará abre la página con `?demo` al final. Con el
+`META_PIXEL_ID` puesto lanza el evento `Schedule` de Meta.
+
+### Publicarlo en Netlify (alternativa)
+
+Arrastra la carpeta a <https://app.netlify.com/drop>, activa *Forms →
+Enable form detection* y vuelve a subirla. Ahí no hay PHP, así que el funnel
+guarda los leads en **Forms → funnel-primex** automáticamente.

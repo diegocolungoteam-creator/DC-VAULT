@@ -1,4 +1,4 @@
-import { LEAD_SOURCES, type Client } from "@/lib/types";
+import { CLIENT_STATUSES, LEAD_SOURCES, type Client } from "@/lib/types";
 
 export function ClientForm({
   action,
@@ -32,11 +32,20 @@ export function ClientForm({
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium">Estado</label>
           <select name="status" defaultValue={defaultValues?.status ?? "activo"} className="input">
-            <option value="activo">Activo</option>
-            <option value="inactivo">Inactivo</option>
-            <option value="baja">Baja</option>
+            {CLIENT_STATUSES.map((s) => (
+              <option key={s.value} value={s.value}>
+                {s.label}
+              </option>
+            ))}
           </select>
         </div>
+
+        <Field
+          label="Fecha de nacimiento"
+          name="birth_date"
+          type="date"
+          defaultValue={defaultValues?.birth_date ?? ""}
+        />
 
         <Field
           label="Fecha de inscripción"
@@ -71,6 +80,35 @@ export function ClientForm({
           defaultValue={defaultValues?.renewal_date ?? ""}
         />
       </div>
+
+      <fieldset className="flex flex-col gap-3 rounded-lg border border-[var(--border)] p-4">
+        <legend className="px-1 text-sm font-medium">Alarma roja, pausa y baja</legend>
+        <p className="text-xs text-[var(--muted)]">
+          Rellena solo lo que toque según el estado. Si cambias el estado y dejas la fecha vacía, se pone la de hoy.
+          Lo que pasa con el cliente se escribe en Notas (historial).
+        </p>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Field
+            label="Fecha alarma roja"
+            name="alarm_date"
+            type="date"
+            defaultValue={defaultValues?.alarm_date ?? ""}
+          />
+          <Field
+            label="Fecha congelación / pausa"
+            name="frozen_date"
+            type="date"
+            defaultValue={defaultValues?.frozen_date ?? ""}
+          />
+          <Field
+            label="Info pausa (hasta cuándo, por qué)"
+            name="frozen_info"
+            defaultValue={defaultValues?.frozen_info ?? ""}
+          />
+          <Field label="Fecha de baja" name="end_date" type="date" defaultValue={defaultValues?.end_date ?? ""} />
+          <Field label="Motivo de baja" name="end_reason" defaultValue={defaultValues?.end_reason ?? ""} />
+        </div>
+      </fieldset>
 
       <div className="flex flex-col gap-1.5">
         <label className="text-sm font-medium">Notas</label>

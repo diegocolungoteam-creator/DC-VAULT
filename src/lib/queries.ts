@@ -1,8 +1,10 @@
 import { getDb } from "./db";
 import { daysBetween, subtractDays, todayISO } from "./dates";
 import {
+  ACTIVE_STATUSES_SQL,
   REVISION_ALERT_THRESHOLD_DAYS,
   type AdSpendEntry,
+  type BodyMeasurement,
   type Client,
   type ClientStatus,
   type Expense,
@@ -11,6 +13,7 @@ import {
   type RevisionStatus,
   type Task,
   type TaskStatus,
+  type SalesCall,
 } from "./types";
 
 // ---------- Clients ----------
@@ -130,6 +133,13 @@ export function listRevisions(opts: { clientId?: number; status?: RevisionStatus
 
 // ---------- Tasks / avisos ----------
 
+export function listMeasurements(clientId: number): BodyMeasurement[] {
+  const db = getDb();
+  return db
+    .prepare("SELECT * FROM body_measurements WHERE client_id = ? ORDER BY date DESC, id DESC")
+    .all(clientId) as unknown as BodyMeasurement[];
+}
+
 export function listTasks(opts: { status?: TaskStatus } = {}) {
   const db = getDb();
   const clauses: string[] = [];
@@ -167,7 +177,7 @@ export function getTaskAlerts() {
 export function getDashboardStats(monthKey?: string) {
   const db = getDb();
   const activeClients = (
-    db.prepare("SELECT COUNT(*) as n FROM clients WHERE status = 'activo'").get() as { n: number }
+    db.prepare(`SELECT COUNT(*) as n FROM clients WHERE status IN ${ACTIVE_STATUSES_SQL}`).get() as { n: number }
   ).n;
   const totalClients = (db.prepare("SELECT COUNT(*) as n FROM clients").get() as { n: number }).n;
 
@@ -176,13 +186,13 @@ export function getDashboardStats(monthKey?: string) {
 
   const upcomingRenewals = db
     .prepare(
-      `SELECT * FROM clients WHERE status = 'activo' AND renewal_date IS NOT NULL AND renewal_date BETWEEN :today AND :in30 ORDER BY renewal_date ASC`
+      `SELECT * FROM clients WHERE status IN ${ACTIVE_STATUSES_SQL} AND renewal_date IS NOT NULL AND renewal_date BETWEEN :today AND :in30 ORDER BY renewal_date ASC`
     )
     .all({ today, in30 }) as unknown as Client[];
 
   const overdueRenewals = db
     .prepare(
-      `SELECT * FROM clients WHERE status = 'activo' AND renewal_date IS NOT NULL AND renewal_date < :today ORDER BY renewal_date ASC`
+      `SELECT * FROM clients WHERE status IN ${ACTIVE_STATUSES_SQL} AND renewal_date IS NOT NULL AND renewal_date < :today ORDER BY renewal_date ASC`
     )
     .all({ today }) as unknown as Client[];
 
@@ -211,6 +221,14 @@ export function getDashboardStats(monthKey?: string) {
   const recentlyCompletedRevisions = getRecentlyCompletedRevisions(7);
   const taskAlerts = getTaskAlerts();
 
+  const redAlarmClients = db
+    .prepare(`SELECT * FROM clients WHERE status = 'alarma_roja' ORDER BY COALESCE(alarm_date, '9999') ASC, name ASC`)
+    .all() as unknown as Client[];
+  const frozenClients = db
+    .prepare(`SELECT * FROM clients WHERE status = 'congelado' ORDER BY COALESCE(frozen_date, '9999') ASC, name ASC`)
+    .all() as unknown as Client[];
+  const upcomingBirthdays = getUpcomingBirthdays(30);
+
   return {
     activeClients,
     totalClients,
@@ -226,7 +244,47 @@ export function getDashboardStats(monthKey?: string) {
     revisionAlerts,
     recentlyCompletedRevisions,
     taskAlerts,
+    redAlarmClients,
+    frozenClients,
+    upcomingBirthdays,
   };
+}
+
+export interface UpcomingBirthday {
+  client: Client;
+  next_date: string;
+  days_until: number;
+  turning: number;
+}
+
+// Birthdays of clients who haven't left, within the next `days` days (today included).
+export function getUpcomingBirthdays(days: number): UpcomingBirthday[] {
+  const db = getDb();
+  const today = todayISO();
+  const clients = db
+    .prepare(`SELECT * FROM clients WHERE birth_date IS NOT NULL AND status != 'baja'`)
+    .all() as unknown as Client[];
+
+  const year = Number(today.slice(0, 4));
+  return clients
+    .map((client) => {
+      const mmdd = client.birth_date!.slice(5, 10);
+      // 29 Feb birthdays fall on 28 Feb in non-leap years.
+      const dateIn = (y: number) => {
+        const leap = (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+        return `${y}-${mmdd === "02-29" && !leap ? "02-28" : mmdd}`;
+      };
+      const nextYear = dateIn(year) >= today ? year : year + 1;
+      const next_date = dateIn(nextYear);
+      return {
+        client,
+        next_date,
+        days_until: daysBetween(today, next_date),
+        turning: nextYear - Number(client.birth_date!.slice(0, 4)),
+      };
+    })
+    .filter((b) => b.days_until <= days)
+    .sort((a, b) => a.days_until - b.days_until);
 }
 
 export interface PeriodSummary {
@@ -447,7 +505,7 @@ export function getRevisionAlerts(thresholdDays: number): RevisionAlert[] {
          (SELECT MAX(done_date) FROM revisions r WHERE r.client_id = c.id AND r.status = 'realizada') as last_revision_date,
          (SELECT COUNT(*) FROM revisions r WHERE r.client_id = c.id AND r.status = 'pendiente') as pending_count
        FROM clients c
-       WHERE c.status = 'activo'`
+       WHERE c.status IN ${ACTIVE_STATUSES_SQL}`
     )
     .all() as { client_id: number; client_name: string; last_revision_date: string | null; pending_count: number }[];
 
@@ -532,7 +590,7 @@ export function getBusinessKPIs(): BusinessKPIs {
        JOIN payments p ON p.id = (
          SELECT id FROM payments WHERE client_id = c.id ORDER BY date DESC, id DESC LIMIT 1
        )
-       WHERE c.status = 'activo'`
+       WHERE c.status IN ${ACTIVE_STATUSES_SQL}`
     )
     .all() as { billing_cycle: string; last_amount: number }[];
 
@@ -555,17 +613,17 @@ export function getBusinessKPIs(): BusinessKPIs {
     )
     .get() as { total_paying: number; renewers: number | null };
 
-  // Churn: clients now 'baja' whose paid period lapsed (renewal_date) in the last 30
-  // days, used as a proxy for "when they left" since status changes aren't logged.
+  // Churn: clients now 'baja' who left in the last 30 days, by their fecha de baja or,
+  // when that wasn't filled in, by when their paid period lapsed (renewal_date).
   const today = todayISO();
   const since30 = subtractDays(today, 30);
   const activeCount = (
-    db.prepare(`SELECT COUNT(*) as n FROM clients WHERE status = 'activo'`).get() as { n: number }
+    db.prepare(`SELECT COUNT(*) as n FROM clients WHERE status IN ${ACTIVE_STATUSES_SQL}`).get() as { n: number }
   ).n;
   const churnedLast30 = (
     db
       .prepare(
-        `SELECT COUNT(*) as n FROM clients WHERE status = 'baja' AND renewal_date BETWEEN :since AND :today`
+        `SELECT COUNT(*) as n FROM clients WHERE status = 'baja' AND COALESCE(end_date, renewal_date) BETWEEN :since AND :today`
       )
       .get({ since: since30, today }) as { n: number }
   ).n;
@@ -626,4 +684,119 @@ export function getLastRevisionByClient(): Map<number, string> {
     )
     .all() as { client_id: number; last_date: string }[];
   return new Map(rows.map((r) => [r.client_id, r.last_date]));
+}
+
+// ---------- Sales calls (Fathom) ----------
+
+export function listSalesCalls(opts: { from: string; to: string }): SalesCall[] {
+  return getDb()
+    .prepare(
+      `SELECT id, fathom_recording_id, title, date, started_at, duration_min, url, closer_name, closer_email,
+         prospect_name, prospect_email, client_id, closer_talk_pct, closer_questions, outcome, outcome_source,
+         amount, score, analysis, analyzed_at, notes, created_at
+       FROM sales_calls WHERE date BETWEEN :from AND :to ORDER BY started_at DESC`
+    )
+    .all({ from: opts.from, to: opts.to }) as unknown as SalesCall[];
+}
+
+export function getSalesCall(id: number): SalesCall | undefined {
+  return getDb().prepare("SELECT * FROM sales_calls WHERE id = ?").get(id) as SalesCall | undefined;
+}
+
+export function countUnanalyzedCalls(): number {
+  const row = getDb()
+    .prepare("SELECT COUNT(*) as n FROM sales_calls WHERE analyzed_at IS NULL AND transcript IS NOT NULL")
+    .get() as { n: number };
+  return row.n;
+}
+
+function avg(values: (number | null)[]): number | null {
+  const nums = values.filter((v): v is number => v != null);
+  return nums.length ? nums.reduce((s, v) => s + v, 0) / nums.length : null;
+}
+
+export interface CloserStats {
+  closer: string;
+  calls: number;
+  closes: number;
+  closeRate: number | null;
+  revenue: number;
+  avgScore: number | null;
+  avgTalkPct: number | null;
+}
+
+export function getSalesCallStats(calls: SalesCall[]) {
+  const sales = calls.filter((c) => c.outcome !== "no_venta");
+  const decided = sales.filter((c) => c.outcome !== "pendiente");
+  const closed = sales.filter((c) => c.outcome === "cerrada");
+  const revenue = closed.reduce((s, c) => s + (c.amount ?? 0), 0);
+  const closedWithAmount = closed.filter((c) => c.amount != null);
+
+  const byOutcome = new Map<string, number>();
+  for (const c of sales) byOutcome.set(c.outcome, (byOutcome.get(c.outcome) ?? 0) + 1);
+
+  const objections = new Map<string, { count: number; overcome: number; closed: number }>();
+  const phaseTotals = new Map<string, number[]>();
+  for (const c of sales) {
+    if (!c.analysis) continue;
+    const a = JSON.parse(c.analysis) as {
+      objeciones?: { tipo: string; superada: boolean }[];
+      fases?: Record<string, number>;
+    };
+    const seen = new Set<string>();
+    for (const o of a.objeciones ?? []) {
+      const cur = objections.get(o.tipo) ?? { count: 0, overcome: 0, closed: 0 };
+      cur.count++;
+      if (o.superada) cur.overcome++;
+      if (!seen.has(o.tipo) && c.outcome === "cerrada") cur.closed++;
+      seen.add(o.tipo);
+      objections.set(o.tipo, cur);
+    }
+    for (const [phase, score] of Object.entries(a.fases ?? {})) {
+      const arr = phaseTotals.get(phase) ?? [];
+      arr.push(score);
+      phaseTotals.set(phase, arr);
+    }
+  }
+
+  const closers = new Map<string, SalesCall[]>();
+  for (const c of sales) {
+    const key = c.closer_name ?? "Sin asignar";
+    closers.set(key, [...(closers.get(key) ?? []), c]);
+  }
+  const byCloser: CloserStats[] = Array.from(closers.entries())
+    .map(([closer, cs]) => {
+      const dec = cs.filter((c) => c.outcome !== "pendiente");
+      const cl = cs.filter((c) => c.outcome === "cerrada");
+      return {
+        closer,
+        calls: cs.length,
+        closes: cl.length,
+        closeRate: dec.length ? (cl.length / dec.length) * 100 : null,
+        revenue: cl.reduce((s, c) => s + (c.amount ?? 0), 0),
+        avgScore: avg(cs.map((c) => c.score)),
+        avgTalkPct: avg(cs.map((c) => c.closer_talk_pct)),
+      };
+    })
+    .sort((a, b) => b.revenue - a.revenue);
+
+  return {
+    totalCalls: sales.length,
+    decidedCalls: decided.length,
+    closes: closed.length,
+    closeRate: decided.length ? (closed.length / decided.length) * 100 : null,
+    revenue,
+    avgTicket: closedWithAmount.length ? closedWithAmount.reduce((s, c) => s + (c.amount ?? 0), 0) / closedWithAmount.length : null,
+    revenuePerCall: decided.length ? revenue / decided.length : null,
+    avgDuration: avg(sales.map((c) => c.duration_min)),
+    avgClosedDuration: avg(closed.map((c) => c.duration_min)),
+    avgTalkPct: avg(sales.map((c) => c.closer_talk_pct)),
+    avgScore: avg(sales.map((c) => c.score)),
+    byOutcome,
+    objections: Array.from(objections.entries())
+      .map(([tipo, v]) => ({ tipo, ...v }))
+      .sort((a, b) => b.count - a.count),
+    phases: Array.from(phaseTotals.entries()).map(([phase, scores]) => ({ phase, avg: avg(scores) ?? 0 })),
+    byCloser,
+  };
 }
