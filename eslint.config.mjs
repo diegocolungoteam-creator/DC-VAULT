@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Remotion reel studio: separate project with its own tooling.
+    "reel-studio/**",
   ]),
 ]);
 
