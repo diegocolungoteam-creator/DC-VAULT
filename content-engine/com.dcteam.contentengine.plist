@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- __ENGINE_DIR__ se sustituye al instalar (ver INSTALAR.md, paso 6) por la ruta real
+         de la carpeta content-engine en tu Mac. -->
+    <key>Label</key><string>com.dcteam.contentengine</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>__ENGINE_DIR__/.venv/bin/python</string>
+        <string>__ENGINE_DIR__/weekly_engine.py</string>
+    </array>
+    <key>WorkingDirectory</key><string>__ENGINE_DIR__</string>
+    <!-- Los dos hacen falta: RunAtLoad solo dispara al iniciar sesión (sin wifi aún);
+         StartInterval reintenta cada 6 h. El throttle de 7 días decide cuándo trabaja. -->
+    <key>RunAtLoad</key><true/>
+    <key>StartInterval</key><integer>21600</integer>
+    <key>StandardOutPath</key><string>__ENGINE_DIR__/engine.log</string>
+    <key>StandardErrorPath</key><string>__ENGINE_DIR__/engine.log</string>
+</dict>
+</plist>
