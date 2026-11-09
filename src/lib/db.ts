@@ -141,6 +141,11 @@ function migrate(db: DatabaseSync) {
   if (!clientColumns.some((c) => c.name === "pending_amount")) {
     db.exec("ALTER TABLE clients ADD COLUMN pending_amount REAL");
   }
+  for (const col of ["birth_date", "alarm_date", "frozen_date", "frozen_info", "end_date", "end_reason"]) {
+    if (!clientColumns.some((c) => c.name === col)) {
+      db.exec(`ALTER TABLE clients ADD COLUMN ${col} TEXT`);
+    }
+  }
 }
 
 export function getDb(): DatabaseSync {

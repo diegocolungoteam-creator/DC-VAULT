@@ -10,7 +10,7 @@ import {
 } from "@/lib/queries";
 import { StatCard } from "@/components/StatCard";
 import { formatCurrencyEs, formatDateEs, formatMonthEs, todayISO } from "@/lib/dates";
-import { REVISION_ALERT_THRESHOLD_DAYS } from "@/lib/types";
+import { REVISION_ALERT_THRESHOLD_DAYS, type Client } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -67,6 +67,40 @@ export default async function DashboardPage({
           value={String(stats.taskAlerts.length)}
           hint="Tareas y leads por avisar"
           tone={stats.taskAlerts.length > 0 ? "danger" : "default"}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <ClientListCard
+          title="🚨 Alarma roja"
+          empty="Ningún cliente en alarma roja."
+          href="/clientes?status=alarma_roja"
+          items={stats.redAlarmClients.map((c) => ({
+            client: c,
+            right: c.alarm_date ? `desde ${formatDateEs(c.alarm_date)}` : "",
+            danger: true,
+          }))}
+        />
+        <ClientListCard
+          title="Congelados / pausa"
+          empty="Ningún cliente congelado."
+          href="/clientes?status=congelado"
+          items={stats.frozenClients.map((c) => ({
+            client: c,
+            right: c.frozen_info || (c.frozen_date ? `desde ${formatDateEs(c.frozen_date)}` : ""),
+          }))}
+        />
+        <ClientListCard
+          title="🎂 Cumpleaños (30 días)"
+          empty="Ningún cumpleaños en los próximos 30 días."
+          items={stats.upcomingBirthdays.map((b) => ({
+            client: b.client,
+            right:
+              b.days_until === 0
+                ? `¡Hoy! (${b.turning})`
+                : `${formatDateEs(b.next_date).slice(0, 5)} · cumple ${b.turning}`,
+            danger: b.days_until === 0,
+          }))}
         />
       </div>
 
@@ -346,6 +380,48 @@ export default async function DashboardPage({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function ClientListCard({
+  title,
+  empty,
+  href,
+  items,
+}: {
+  title: string;
+  empty: string;
+  href?: string;
+  items: { client: Client; right: string; danger?: boolean }[];
+}) {
+  return (
+    <div className="card p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="font-medium">
+          {title}
+          <span className="ml-2 text-xs font-normal text-[var(--muted)]">{items.length}</span>
+        </h2>
+        {href && items.length > 0 && (
+          <Link href={href} className="text-xs text-[var(--accent)]">
+            Ver todos
+          </Link>
+        )}
+      </div>
+      {items.length === 0 ? (
+        <p className="text-sm text-[var(--muted)]">{empty}</p>
+      ) : (
+        <ul className="flex flex-col divide-y divide-[var(--border)]">
+          {items.slice(0, 8).map(({ client, right, danger }) => (
+            <li key={client.id} className="flex items-center justify-between gap-2 py-2 text-sm">
+              <Link href={`/clientes/${client.id}`} className="hover:underline">
+                {client.name}
+              </Link>
+              <span className={`text-right ${danger ? "text-[var(--danger)]" : "text-[var(--muted)]"}`}>{right}</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

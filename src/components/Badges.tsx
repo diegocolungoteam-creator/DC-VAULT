@@ -2,12 +2,14 @@ import type { CallOutcome, ClientStatus, RevisionStatus, TaskStatus } from "@/li
 
 const CLIENT_STATUS_STYLE: Record<ClientStatus, { bg: string; fg: string; label: string }> = {
   activo: { bg: "#dcfce7", fg: "#166534", label: "Activo" },
+  alarma_roja: { bg: "#dc2626", fg: "#ffffff", label: "🚨 Alarma roja" },
+  congelado: { bg: "#dbeafe", fg: "#1e40af", label: "Congelado" },
   inactivo: { bg: "#fef9c3", fg: "#854d0e", label: "Inactivo" },
   baja: { bg: "#fee2e2", fg: "#991b1b", label: "Baja" },
 };
 
 export function ClientStatusBadge({ status }: { status: ClientStatus }) {
-  const s = CLIENT_STATUS_STYLE[status];
+  const s = CLIENT_STATUS_STYLE[status] ?? CLIENT_STATUS_STYLE.activo;
   return (
     <span className="badge" style={{ background: s.bg, color: s.fg }}>
       {s.label}

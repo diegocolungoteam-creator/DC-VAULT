@@ -1,6 +1,7 @@
 import { getDb } from "./db";
 import { daysBetween, subtractDays, todayISO } from "./dates";
 import {
+  ACTIVE_STATUSES_SQL,
   REVISION_ALERT_THRESHOLD_DAYS,
   type AdSpendEntry,
   type Client,
@@ -168,7 +169,7 @@ export function getTaskAlerts() {
 export function getDashboardStats(monthKey?: string) {
   const db = getDb();
   const activeClients = (
-    db.prepare("SELECT COUNT(*) as n FROM clients WHERE status = 'activo'").get() as { n: number }
+    db.prepare(`SELECT COUNT(*) as n FROM clients WHERE status IN ${ACTIVE_STATUSES_SQL}`).get() as { n: number }
   ).n;
   const totalClients = (db.prepare("SELECT COUNT(*) as n FROM clients").get() as { n: number }).n;
 
@@ -177,13 +178,13 @@ export function getDashboardStats(monthKey?: string) {
 
   const upcomingRenewals = db
     .prepare(
-      `SELECT * FROM clients WHERE status = 'activo' AND renewal_date IS NOT NULL AND renewal_date BETWEEN :today AND :in30 ORDER BY renewal_date ASC`
+      `SELECT * FROM clients WHERE status IN ${ACTIVE_STATUSES_SQL} AND renewal_date IS NOT NULL AND renewal_date BETWEEN :today AND :in30 ORDER BY renewal_date ASC`
     )
     .all({ today, in30 }) as unknown as Client[];
 
   const overdueRenewals = db
     .prepare(
-      `SELECT * FROM clients WHERE status = 'activo' AND renewal_date IS NOT NULL AND renewal_date < :today ORDER BY renewal_date ASC`
+      `SELECT * FROM clients WHERE status IN ${ACTIVE_STATUSES_SQL} AND renewal_date IS NOT NULL AND renewal_date < :today ORDER BY renewal_date ASC`
     )
     .all({ today }) as unknown as Client[];
 
@@ -212,6 +213,14 @@ export function getDashboardStats(monthKey?: string) {
   const recentlyCompletedRevisions = getRecentlyCompletedRevisions(7);
   const taskAlerts = getTaskAlerts();
 
+  const redAlarmClients = db
+    .prepare(`SELECT * FROM clients WHERE status = 'alarma_roja' ORDER BY COALESCE(alarm_date, '9999') ASC, name ASC`)
+    .all() as unknown as Client[];
+  const frozenClients = db
+    .prepare(`SELECT * FROM clients WHERE status = 'congelado' ORDER BY COALESCE(frozen_date, '9999') ASC, name ASC`)
+    .all() as unknown as Client[];
+  const upcomingBirthdays = getUpcomingBirthdays(30);
+
   return {
     activeClients,
     totalClients,
@@ -227,7 +236,47 @@ export function getDashboardStats(monthKey?: string) {
     revisionAlerts,
     recentlyCompletedRevisions,
     taskAlerts,
+    redAlarmClients,
+    frozenClients,
+    upcomingBirthdays,
   };
+}
+
+export interface UpcomingBirthday {
+  client: Client;
+  next_date: string;
+  days_until: number;
+  turning: number;
+}
+
+// Birthdays of clients who haven't left, within the next `days` days (today included).
+export function getUpcomingBirthdays(days: number): UpcomingBirthday[] {
+  const db = getDb();
+  const today = todayISO();
+  const clients = db
+    .prepare(`SELECT * FROM clients WHERE birth_date IS NOT NULL AND status != 'baja'`)
+    .all() as unknown as Client[];
+
+  const year = Number(today.slice(0, 4));
+  return clients
+    .map((client) => {
+      const mmdd = client.birth_date!.slice(5, 10);
+      // 29 Feb birthdays fall on 28 Feb in non-leap years.
+      const dateIn = (y: number) => {
+        const leap = (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+        return `${y}-${mmdd === "02-29" && !leap ? "02-28" : mmdd}`;
+      };
+      const nextYear = dateIn(year) >= today ? year : year + 1;
+      const next_date = dateIn(nextYear);
+      return {
+        client,
+        next_date,
+        days_until: daysBetween(today, next_date),
+        turning: nextYear - Number(client.birth_date!.slice(0, 4)),
+      };
+    })
+    .filter((b) => b.days_until <= days)
+    .sort((a, b) => a.days_until - b.days_until);
 }
 
 export interface PeriodSummary {
@@ -448,7 +497,7 @@ export function getRevisionAlerts(thresholdDays: number): RevisionAlert[] {
          (SELECT MAX(done_date) FROM revisions r WHERE r.client_id = c.id AND r.status = 'realizada') as last_revision_date,
          (SELECT COUNT(*) FROM revisions r WHERE r.client_id = c.id AND r.status = 'pendiente') as pending_count
        FROM clients c
-       WHERE c.status = 'activo'`
+       WHERE c.status IN ${ACTIVE_STATUSES_SQL}`
     )
     .all() as { client_id: number; client_name: string; last_revision_date: string | null; pending_count: number }[];
 
@@ -533,7 +582,7 @@ export function getBusinessKPIs(): BusinessKPIs {
        JOIN payments p ON p.id = (
          SELECT id FROM payments WHERE client_id = c.id ORDER BY date DESC, id DESC LIMIT 1
        )
-       WHERE c.status = 'activo'`
+       WHERE c.status IN ${ACTIVE_STATUSES_SQL}`
     )
     .all() as { billing_cycle: string; last_amount: number }[];
 
@@ -556,17 +605,17 @@ export function getBusinessKPIs(): BusinessKPIs {
     )
     .get() as { total_paying: number; renewers: number | null };
 
-  // Churn: clients now 'baja' whose paid period lapsed (renewal_date) in the last 30
-  // days, used as a proxy for "when they left" since status changes aren't logged.
+  // Churn: clients now 'baja' who left in the last 30 days, by their fecha de baja or,
+  // when that wasn't filled in, by when their paid period lapsed (renewal_date).
   const today = todayISO();
   const since30 = subtractDays(today, 30);
   const activeCount = (
-    db.prepare(`SELECT COUNT(*) as n FROM clients WHERE status = 'activo'`).get() as { n: number }
+    db.prepare(`SELECT COUNT(*) as n FROM clients WHERE status IN ${ACTIVE_STATUSES_SQL}`).get() as { n: number }
   ).n;
   const churnedLast30 = (
     db
       .prepare(
-        `SELECT COUNT(*) as n FROM clients WHERE status = 'baja' AND renewal_date BETWEEN :since AND :today`
+        `SELECT COUNT(*) as n FROM clients WHERE status = 'baja' AND COALESCE(end_date, renewal_date) BETWEEN :since AND :today`
       )
       .get({ since: since30, today }) as { n: number }
   ).n;

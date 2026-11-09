@@ -23,7 +23,7 @@ import {
   todayISO,
   weekdayEs,
 } from "@/lib/dates";
-import { REVISION_ALERT_THRESHOLD_DAYS, type Revision, type RevisionStatus } from "@/lib/types";
+import { isActiveStatus, REVISION_ALERT_THRESHOLD_DAYS, type Revision, type RevisionStatus } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +37,7 @@ export default async function RevisionesPage({
   const params = await searchParams;
   const status = (params.status as RevisionStatus | undefined) || undefined;
   const vista = params.vista === "linea" ? "linea" : "lista";
-  const clients = listClients({ status: "activo" });
+  const clients = listClients({ status: "todos" }).filter((c) => isActiveStatus(c.status));
   const alerts = getRevisionAlerts(REVISION_ALERT_THRESHOLD_DAYS);
   const today = todayISO();
 

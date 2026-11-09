@@ -1,4 +1,19 @@
-export type ClientStatus = "activo" | "inactivo" | "baja";
+export type ClientStatus = "activo" | "alarma_roja" | "congelado" | "inactivo" | "baja";
+
+export const CLIENT_STATUSES: { value: ClientStatus; label: string }[] = [
+  { value: "activo", label: "Activo" },
+  { value: "alarma_roja", label: "🚨 Alarma roja" },
+  { value: "congelado", label: "Congelado / pausa" },
+  { value: "inactivo", label: "Inactivo" },
+  { value: "baja", label: "Baja" },
+];
+
+// Clients in alarma roja are still paying clients: they count as active everywhere.
+export const ACTIVE_STATUSES_SQL = "('activo', 'alarma_roja')";
+
+export function isActiveStatus(status: ClientStatus): boolean {
+  return status === "activo" || status === "alarma_roja";
+}
 export type BillingCycle = "mensual" | "trimestral" | "semestral" | "anual";
 export type RevisionStatus = "pendiente" | "realizada" | "cancelada";
 export type TaskStatus = "pendiente" | "completada";
@@ -19,6 +34,12 @@ export interface Client {
   source: string | null;
   contracted_total: number | null;
   pending_amount: number | null;
+  birth_date: string | null;
+  alarm_date: string | null;
+  frozen_date: string | null;
+  frozen_info: string | null;
+  end_date: string | null;
+  end_reason: string | null;
   created_at: string;
 }
 

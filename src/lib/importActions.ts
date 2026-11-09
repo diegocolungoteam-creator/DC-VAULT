@@ -30,7 +30,15 @@ function getMapped(row: Record<string, string>, mapping: Record<string, string>,
   return row[header];
 }
 
-const CLIENT_STATUSES: ClientStatus[] = ["activo", "inactivo", "baja"];
+// Accepts the CRM's own values plus the labels used in the Notion/Sheets client base.
+function parseClientStatus(raw: string | undefined): ClientStatus {
+  const s = (raw ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  if (s.includes("alarma")) return "alarma_roja";
+  if (s.includes("congel") || s.includes("pausa")) return "congelado";
+  if (s.includes("baja")) return "baja";
+  if (s.includes("inactivo")) return "inactivo";
+  return "activo";
+}
 const BILLING_CYCLES: BillingCycle[] = ["mensual", "trimestral", "semestral", "anual"];
 
 export async function importClientsAction(
@@ -52,14 +60,17 @@ export async function importClientsAction(
   const matchClient = buildClientMatcher(db);
   const localMatches = new Map<string, number>();
   const insert = db.prepare(
-    `INSERT INTO clients (name, email, phone, address, notes, status, enrollment_date, plan, fee, billing_cycle, renewal_date, source, contracted_total, pending_amount)
-     VALUES (:name, :email, :phone, :address, :notes, :status, :enrollment_date, :plan, :fee, :billing_cycle, :renewal_date, :source, :contracted_total, :pending_amount)`
+    `INSERT INTO clients (name, email, phone, address, notes, status, enrollment_date, plan, fee, billing_cycle, renewal_date, source, contracted_total, pending_amount,
+       birth_date, end_date, end_reason)
+     VALUES (:name, :email, :phone, :address, :notes, :status, :enrollment_date, :plan, :fee, :billing_cycle, :renewal_date, :source, :contracted_total, :pending_amount,
+       :birth_date, :end_date, :end_reason)`
   );
   const update = db.prepare(
     `UPDATE clients SET name=:name, email=:email, phone=:phone, address=:address, notes=:notes,
      status=:status, enrollment_date=:enrollment_date, plan=:plan, fee=:fee,
      billing_cycle=:billing_cycle, renewal_date=:renewal_date, source=:source,
-     contracted_total=:contracted_total, pending_amount=:pending_amount WHERE id=:id`
+     contracted_total=:contracted_total, pending_amount=:pending_amount,
+     birth_date=:birth_date, end_date=:end_date, end_reason=:end_reason WHERE id=:id`
   );
 
   result.updated = 0;
@@ -71,8 +82,7 @@ export async function importClientsAction(
       result.errors.push(`Fila ${i + 2}: falta el nombre, se omite.`);
       return;
     }
-    const statusRaw = getMapped(row, mapping, "status")?.trim().toLowerCase();
-    const status = CLIENT_STATUSES.includes(statusRaw as ClientStatus) ? (statusRaw as ClientStatus) : "activo";
+    const status = parseClientStatus(getMapped(row, mapping, "status"));
 
     const cycleRaw = getMapped(row, mapping, "billing_cycle")?.trim().toLowerCase();
     const billing_cycle = BILLING_CYCLES.includes(cycleRaw as BillingCycle) ? (cycleRaw as BillingCycle) : "mensual";
@@ -93,6 +103,9 @@ export async function importClientsAction(
       source: getMapped(row, mapping, "source")?.trim() || null,
       contracted_total: parseFlexibleAmount(getMapped(row, mapping, "contracted_total")),
       pending_amount: parseFlexibleAmount(getMapped(row, mapping, "pending_amount")),
+      birth_date: parseFlexibleDate(getMapped(row, mapping, "birth_date")),
+      end_date: parseFlexibleDate(getMapped(row, mapping, "end_date")),
+      end_reason: getMapped(row, mapping, "end_reason")?.trim() || null,
     };
 
     const existingId = localMatches.get(normalizeMatchKey(name)) ?? matchClient(name) ?? (email ? matchClient(email) : undefined);

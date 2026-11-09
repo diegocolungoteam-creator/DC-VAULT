@@ -13,7 +13,7 @@ import { getClient, listPayments, listRevisions } from "@/lib/queries";
 import { ClientStatusBadge, RevisionStatusBadge } from "@/components/Badges";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { daysBetween, formatCurrencyEs, formatDateEs, todayISO } from "@/lib/dates";
-import { PAYMENT_METHODS, REVISION_ALERT_THRESHOLD_DAYS } from "@/lib/types";
+import { isActiveStatus, PAYMENT_METHODS, REVISION_ALERT_THRESHOLD_DAYS } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +33,7 @@ export default async function ClienteDetailPage({ params }: { params: Promise<{ 
     .sort()
     .at(-1);
   const daysSinceRevision = lastRevisionDate ? daysBetween(lastRevisionDate, todayISO()) : null;
-  const revisionOverdue = client.status === "activo" && (daysSinceRevision == null || daysSinceRevision >= REVISION_ALERT_THRESHOLD_DAYS);
+  const revisionOverdue = isActiveStatus(client.status) && (daysSinceRevision == null || daysSinceRevision >= REVISION_ALERT_THRESHOLD_DAYS);
 
   return (
     <div className="flex flex-col gap-6">
@@ -71,6 +71,22 @@ export default async function ClienteDetailPage({ params }: { params: Promise<{ 
         />
         <InfoBox label="Próxima renovación" value={formatDateEs(client.renewal_date)} />
         <InfoBox label="Fuente" value={client.source ?? "—"} />
+        {client.birth_date && <InfoBox label="Cumpleaños" value={formatDateEs(client.birth_date)} />}
+        {client.status === "alarma_roja" && (
+          <InfoBox label="En alarma roja desde" value={formatDateEs(client.alarm_date)} danger />
+        )}
+        {client.status === "congelado" && (
+          <InfoBox
+            label="Congelado desde"
+            value={`${formatDateEs(client.frozen_date)}${client.frozen_info ? ` · ${client.frozen_info}` : ""}`}
+          />
+        )}
+        {client.status === "baja" && (
+          <InfoBox
+            label="Baja"
+            value={`${formatDateEs(client.end_date)}${client.end_reason ? ` · ${client.end_reason}` : ""}`}
+          />
+        )}
         <InfoBox
           label="Última revisión"
           value={
