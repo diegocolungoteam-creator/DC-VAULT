@@ -14,6 +14,7 @@ const NAV = [
   { href: "/gastos", label: "Gastos" },
   { href: "/revisiones", label: "Revisiones" },
   { href: "/tareas", label: "Avisos" },
+  { href: "/llamadas", label: "Llamadas" },
   { href: "/publicidad", label: "Publicidad" },
   { href: "/contabilidad", label: "Contabilidad" },
   { href: "/importar", label: "Importar" },

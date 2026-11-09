@@ -1,4 +1,4 @@
-import type { ClientStatus, RevisionStatus, TaskStatus } from "@/lib/types";
+import type { CallOutcome, ClientStatus, RevisionStatus, TaskStatus } from "@/lib/types";
 
 const CLIENT_STATUS_STYLE: Record<ClientStatus, { bg: string; fg: string; label: string }> = {
   activo: { bg: "#dcfce7", fg: "#166534", label: "Activo" },
@@ -37,6 +37,23 @@ const TASK_STATUS_STYLE: Record<TaskStatus, { bg: string; fg: string; label: str
 
 export function TaskStatusBadge({ status }: { status: TaskStatus }) {
   const s = TASK_STATUS_STYLE[status];
+  return (
+    <span className="badge" style={{ background: s.bg, color: s.fg }}>
+      {s.label}
+    </span>
+  );
+}
+
+const CALL_OUTCOME_STYLE: Record<CallOutcome, { bg: string; fg: string; label: string }> = {
+  cerrada: { bg: "#dcfce7", fg: "#166534", label: "Cerrada" },
+  seguimiento: { bg: "#dbeafe", fg: "#1e40af", label: "Seguimiento" },
+  perdida: { bg: "#fee2e2", fg: "#991b1b", label: "Perdida" },
+  no_venta: { bg: "#f3f4f6", fg: "#4b5563", label: "No es venta" },
+  pendiente: { bg: "#fef9c3", fg: "#854d0e", label: "Sin analizar" },
+};
+
+export function CallOutcomeBadge({ outcome }: { outcome: CallOutcome }) {
+  const s = CALL_OUTCOME_STYLE[outcome] ?? CALL_OUTCOME_STYLE.pendiente;
   return (
     <span className="badge" style={{ background: s.bg, color: s.fg }}>
       {s.label}
