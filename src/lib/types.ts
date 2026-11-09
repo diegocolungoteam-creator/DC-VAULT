@@ -86,6 +86,32 @@ export interface Revision {
   created_at: string;
 }
 
+export interface BodyMeasurement {
+  id: number;
+  client_id: number;
+  date: string;
+  weight: number | null;
+  body_fat: number | null;
+  waist: number | null;
+  hip: number | null;
+  chest: number | null;
+  arm: number | null;
+  thigh: number | null;
+  photos_url: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export const MEASUREMENT_FIELDS = [
+  { key: "weight", label: "Peso", unit: "kg" },
+  { key: "body_fat", label: "% grasa", unit: "%" },
+  { key: "waist", label: "Cintura", unit: "cm" },
+  { key: "hip", label: "Cadera", unit: "cm" },
+  { key: "chest", label: "Pecho", unit: "cm" },
+  { key: "arm", label: "Brazo", unit: "cm" },
+  { key: "thigh", label: "Muslo", unit: "cm" },
+] as const satisfies readonly { key: keyof BodyMeasurement; label: string; unit: string }[];
+
 export interface Task {
   id: number;
   title: string;

@@ -4,6 +4,7 @@ import {
   ACTIVE_STATUSES_SQL,
   REVISION_ALERT_THRESHOLD_DAYS,
   type AdSpendEntry,
+  type BodyMeasurement,
   type Client,
   type ClientStatus,
   type Expense,
@@ -131,6 +132,13 @@ export function listRevisions(opts: { clientId?: number; status?: RevisionStatus
 }
 
 // ---------- Tasks / avisos ----------
+
+export function listMeasurements(clientId: number): BodyMeasurement[] {
+  const db = getDb();
+  return db
+    .prepare("SELECT * FROM body_measurements WHERE client_id = ? ORDER BY date DESC, id DESC")
+    .all(clientId) as unknown as BodyMeasurement[];
+}
 
 export function listTasks(opts: { status?: TaskStatus } = {}) {
   const db = getDb();

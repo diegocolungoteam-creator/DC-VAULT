@@ -118,6 +118,23 @@ function migrate(db: DatabaseSync) {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS body_measurements (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      client_id INTEGER NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+      date TEXT NOT NULL,
+      weight REAL,
+      body_fat REAL,
+      waist REAL,
+      hip REAL,
+      chest REAL,
+      arm REAL,
+      thigh REAL,
+      photos_url TEXT,
+      notes TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_body_measurements_client ON body_measurements(client_id, date);
     CREATE INDEX IF NOT EXISTS idx_sales_calls_date ON sales_calls(date);
     CREATE INDEX IF NOT EXISTS idx_payments_client ON payments(client_id);
     CREATE INDEX IF NOT EXISTS idx_payments_date ON payments(date);

@@ -9,7 +9,8 @@ import {
   markRevisionDoneAction,
   cancelRevisionAction,
 } from "@/lib/actions";
-import { getClient, listPayments, listRevisions } from "@/lib/queries";
+import { getClient, listMeasurements, listPayments, listRevisions } from "@/lib/queries";
+import { MeasurementsSection } from "@/components/MeasurementsSection";
 import { ClientStatusBadge, RevisionStatusBadge } from "@/components/Badges";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { daysBetween, formatCurrencyEs, formatDateEs, todayISO } from "@/lib/dates";
@@ -25,6 +26,7 @@ export default async function ClienteDetailPage({ params }: { params: Promise<{ 
 
   const payments = listPayments({ clientId });
   const revisions = listRevisions({ clientId });
+  const measurements = listMeasurements(clientId);
   const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
 
   const lastRevisionDate = revisions
@@ -214,6 +216,8 @@ export default async function ClienteDetailPage({ params }: { params: Promise<{ 
           </ul>
         </section>
       </div>
+
+      <MeasurementsSection clientId={client.id} measurements={measurements} />
     </div>
   );
 }

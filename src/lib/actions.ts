@@ -248,6 +248,40 @@ export async function deleteRevisionAction(id: number, clientId: number) {
   revalidatePath("/");
 }
 
+// ---------- Cambios físicos ----------
+
+export async function createMeasurementAction(formData: FormData) {
+  const db = getDb();
+  const clientId = Number(formData.get("client_id"));
+  const num = (field: string) => {
+    const raw = String(formData.get(field) ?? "").replace(",", ".").trim();
+    return raw ? Number(raw) : null;
+  };
+  db.prepare(
+    `INSERT INTO body_measurements (client_id, date, weight, body_fat, waist, hip, chest, arm, thigh, photos_url, notes)
+     VALUES (:client_id, :date, :weight, :body_fat, :waist, :hip, :chest, :arm, :thigh, :photos_url, :notes)`
+  ).run({
+    client_id: clientId,
+    date: String(formData.get("date") || todayISO()),
+    weight: num("weight"),
+    body_fat: num("body_fat"),
+    waist: num("waist"),
+    hip: num("hip"),
+    chest: num("chest"),
+    arm: num("arm"),
+    thigh: num("thigh"),
+    photos_url: (formData.get("photos_url") as string) || null,
+    notes: (formData.get("notes") as string) || null,
+  });
+  revalidatePath(`/clientes/${clientId}`);
+}
+
+export async function deleteMeasurementAction(id: number, clientId: number) {
+  const db = getDb();
+  db.prepare("DELETE FROM body_measurements WHERE id = ?").run(id);
+  revalidatePath(`/clientes/${clientId}`);
+}
+
 // ---------- Tasks / avisos ----------
 
 export async function createTaskAction(formData: FormData) {
